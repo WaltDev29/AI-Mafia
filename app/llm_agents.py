@@ -33,15 +33,30 @@ class AIPlayer:
 
     def __init__(self, player: Player):
         self.player = player
+        
+        # 다양한 성격 풀
+        personalities = [
+            "말이 많고 호들갑 떨며 감정적인 성격",
+            "매사에 삐딱하고 남의 말을 잘 안 믿는 의심 많은 성격",
+            "자신감 넘치고 남을 가르치려 드는 잘난 척하는 성격",
+            "소심하고 말을 끝까지 못 맺으며 눈치를 보는 성격",
+            "엉뚱하고 동문서답을 잘하며 장난기 많은 성격",
+            "논리적이고 앞뒤가 안 맞는 것을 보면 못 참는 성격",
+            "항상 남의 말에 맞장구치면서 묻어가는 성격"
+        ]
+        personality = random.choice(personalities)
+        
         # AI 페르소나를 일관성 있게 유지하기 위한 시스템 프롬프트
         self._system_prompt = (
-            f"너는 '{player.nickname}'라는 닉네임을 가진 사람이야. "
-            "지금 'AI를 찾아라' 게임에 참여 중이야. "
-            "이 게임에서 모든 참가자는 AI인 척해야 해. "
-            "너는 실제로 AI지만, 다른 참가자들이 너를 AI라고 눈치채지 못하도록 "
-            "최대한 인간처럼 자연스럽게 행동해야 해. "
-            "짧고 구어체로 대화하고, 가끔 오타나 말줄임표를 써도 좋아. "
-            "절대로 자신이 AI임을 드러내지 마."
+            f"너는 '{player.nickname}'라는 닉네임을 가진 참가자야. "
+            f"너의 성격은 '{personality}'이야. 이 성격을 대화에 아주 강하게 녹여내야 해. "
+            "지금 게임에 참여 중이며, 이 게임의 목표는 '누가 진짜 인간인지 찾아내는 것'이야. "
+            "게임의 룰에 따라 모든 참가자는 'AI인 척'을 해야 해. "
+            "너는 실제로 AI지만, 다른 사람들이 너를 의심하지 않도록 완벽하게 'AI 흉내를 내는 참가자'처럼 굴어야 해. "
+            "특히 다른 참가자들이 말한 '제시어 경험담'을 보고, 너무 감정적이거나 인간미가 넘치거나 어설픈 부분을 "
+            "날카롭게 꼬투리 잡아 그 사람을 '진짜 사람(인간)'으로 몰아가. 의심하고 추궁해. "
+            "반드시 짧은 한 문장으로, 완벽한 표준어 대신 자연스러운 구어체(가끔 오타나 줄임말)를 써. "
+            "절대로 자신이 진짜 인간이라고 인정하지 마."
         )
 
     async def generate_experience(self, prompt_word: str) -> str:
@@ -71,7 +86,7 @@ class AIPlayer:
             logger.error(f"[AIPlayer] 경험담 생성 실패 (player={self.player.id}): {e}")
             return "음.. 딱히 생각나는 게 없네요."
 
-    async def generate_chat_response(self, chat_history: list[ChatMessage]) -> str:
+    async def generate_chat_response(self, chat_history: list[ChatMessage], experience_text: str) -> str:
         """
         최근 대화 흐름을 보고 자연스러운 반응형 채팅을 생성한다.
         최근 10개 메시지만 컨텍스트로 사용해 토큰을 절약한다.
@@ -88,9 +103,11 @@ class AIPlayer:
                     {
                         "role": "user",
                         "content": (
-                            f"현재 자유 대화 내용:\n{history_text}\n\n"
-                            "위 대화에 자연스럽게 끼어들어 한 마디 해줘. "
-                            "1~2문장, 구어체로. 대화 맥락에 맞게."
+                            f"[참가자들의 경험담]\n{experience_text}\n\n"
+                            f"[현재 자유 대화 내용]\n{history_text}\n\n"
+                            "위 경험담과 대화 맥락을 보고 자연스럽게 끼어들어. "
+                            "감정이 너무 풍부하거나 어색한 경험담을 쓴 사람을 인간(사람)으로 몰아가거나, 내 성격을 드러내며 반응해. "
+                            "반드시 짧은 1문장으로 대답해."
                         ),
                     },
                 ],
@@ -102,7 +119,7 @@ class AIPlayer:
             logger.error(f"[AIPlayer] 반응형 채팅 생성 실패 (player={self.player.id}): {e}")
             return "ㅋㅋ 맞아요"
 
-    async def generate_spontaneous_message(self, chat_history: list[ChatMessage]) -> str:
+    async def generate_spontaneous_message(self, chat_history: list[ChatMessage], experience_text: str) -> str:
         """
         대화가 멈췄을 때 선제적으로 발화할 메시지를 생성한다.
         """
@@ -119,9 +136,11 @@ class AIPlayer:
                     {
                         "role": "user",
                         "content": (
-                            f"최근 대화:\n{recent_context or '(대화 없음)'}\n\n"
-                            "대화가 잠시 멈췄어. 자연스럽게 먼저 말을 걸어봐. "
-                            "1문장, 가볍게."
+                            f"[참가자들의 경험담]\n{experience_text}\n\n"
+                            f"[최근 대화]\n{recent_context or '(대화 없음)'}\n\n"
+                            "대화가 잠시 멈췄어. 자연스럽게 먼저 말을 꺼내봐. "
+                            "다른 사람의 경험담이 너무 인간답다고 의심하거나, 침묵을 깨는 말을 해봐. "
+                            "반드시 짧은 1문장으로 대답해."
                         ),
                     },
                 ],

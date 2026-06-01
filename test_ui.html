@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -31,7 +32,11 @@
       --judge-color: #ed8936;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
     body {
       font-family: 'Outfit', sans-serif;
@@ -63,7 +68,11 @@
       font-weight: 700;
       letter-spacing: -0.3px;
     }
-    .logo-icon { font-size: 1.4rem; }
+
+    .logo-icon {
+      font-size: 1.4rem;
+    }
+
     .logo-tag {
       font-size: 0.65rem;
       font-weight: 500;
@@ -82,7 +91,8 @@
       max-width: 700px;
     }
 
-    .conn-row input, .conn-row select {
+    .conn-row input,
+    .conn-row select {
       background: var(--bg-input);
       border: 1px solid var(--border);
       color: var(--text-primary);
@@ -93,12 +103,23 @@
       outline: none;
       transition: border-color 0.2s;
     }
-    .conn-row input:focus, .conn-row select:focus {
+
+    .conn-row input:focus,
+    .conn-row select:focus {
       border-color: var(--accent);
     }
-    #inp-url { flex: 2; }
-    #inp-nickname { flex: 1; }
-    #inp-mode { flex: 1; }
+
+    #inp-url {
+      flex: 2;
+    }
+
+    #inp-nickname {
+      flex: 1;
+    }
+
+    #inp-mode {
+      flex: 1;
+    }
 
     .btn {
       padding: 8px 18px;
@@ -111,38 +132,56 @@
       transition: all 0.2s;
       white-space: nowrap;
     }
+
     .btn-primary {
       background: var(--accent);
       color: #fff;
       box-shadow: 0 0 16px var(--accent-glow);
     }
-    .btn-primary:hover { background: var(--accent-hover); }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
     .btn-danger {
       background: transparent;
       border: 1px solid var(--danger);
       color: var(--danger);
     }
-    .btn-danger:hover { background: var(--danger-glow); }
+
+    .btn-danger:hover {
+      background: var(--danger-glow);
+    }
+
     .btn-send {
       background: var(--accent);
       color: #fff;
       padding: 10px 22px;
       font-size: 0.9rem;
     }
-    .btn-send:hover { background: var(--accent-hover); }
+
+    .btn-send:hover {
+      background: var(--accent-hover);
+    }
+
     .btn-send:disabled {
       background: var(--bg-input);
       color: var(--text-muted);
       cursor: not-allowed;
       box-shadow: none;
     }
+
     .btn-exp {
       background: var(--success);
       color: #0a0b0f;
       padding: 10px 22px;
       font-size: 0.9rem;
     }
-    .btn-exp:hover { filter: brightness(1.1); }
+
+    .btn-exp:hover {
+      filter: brightness(1.1);
+    }
+
     .btn-exp:disabled {
       background: var(--bg-input);
       color: var(--text-muted);
@@ -157,19 +196,40 @@
       font-weight: 500;
       color: var(--text-secondary);
     }
+
     .status-dot {
-      width: 8px; height: 8px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: var(--text-muted);
       transition: background 0.3s;
     }
-    .status-dot.connected { background: var(--success); box-shadow: 0 0 8px var(--success); }
-    .status-dot.waiting { background: var(--warning); box-shadow: 0 0 8px var(--warning); animation: pulse 1.5s infinite; }
-    .status-dot.error { background: var(--danger); }
+
+    .status-dot.connected {
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    .status-dot.waiting {
+      background: var(--warning);
+      box-shadow: 0 0 8px var(--warning);
+      animation: pulse 1.5s infinite;
+    }
+
+    .status-dot.error {
+      background: var(--danger);
+    }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
     }
 
     /* ── 메인 레이아웃 ───────────────────────── */
@@ -211,21 +271,25 @@
       border-radius: 10px;
       padding: 12px 14px;
     }
+
     .phase-label {
       font-size: 0.72rem;
       color: var(--text-muted);
       margin-bottom: 4px;
     }
+
     .phase-value {
       font-size: 1rem;
       font-weight: 600;
       color: var(--accent);
     }
+
     .round-info {
       margin-top: 8px;
       font-size: 0.78rem;
       color: var(--text-secondary);
     }
+
     .prompt-word {
       margin-top: 6px;
       padding: 8px 10px;
@@ -242,6 +306,7 @@
     .timer-bar-wrap {
       margin-top: 10px;
     }
+
     .timer-text {
       font-size: 0.78rem;
       color: var(--text-secondary);
@@ -249,12 +314,14 @@
       display: flex;
       justify-content: space-between;
     }
+
     .timer-bar {
       height: 4px;
       background: var(--border);
       border-radius: 99px;
       overflow: hidden;
     }
+
     .timer-fill {
       height: 100%;
       background: var(--accent);
@@ -268,6 +335,7 @@
       flex-direction: column;
       gap: 7px;
     }
+
     .player-item {
       display: flex;
       align-items: center;
@@ -279,34 +347,67 @@
       font-size: 0.83rem;
       transition: opacity 0.3s;
     }
+
     .player-item.eliminated {
       opacity: 0.35;
       text-decoration: line-through;
     }
+
     .player-item.current-turn {
       border-color: var(--warning);
       background: rgba(237, 137, 54, 0.08);
     }
+
     .player-avatar {
-      width: 28px; height: 28px;
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 0.75rem;
       font-weight: 700;
       flex-shrink: 0;
     }
-    .player-avatar.human { background: rgba(99, 179, 237, 0.2); color: var(--human-color); border: 1px solid var(--human-color); }
-    .player-avatar.ai { background: rgba(159, 122, 234, 0.2); color: var(--ai-color); border: 1px solid var(--ai-color); }
-    .player-name { font-weight: 500; flex: 1; }
+
+    .player-avatar.human {
+      background: rgba(99, 179, 237, 0.2);
+      color: var(--human-color);
+      border: 1px solid var(--human-color);
+    }
+
+    .player-avatar.ai {
+      background: rgba(159, 122, 234, 0.2);
+      color: var(--ai-color);
+      border: 1px solid var(--ai-color);
+    }
+
+    .player-name {
+      font-weight: 500;
+      flex: 1;
+    }
+
     .player-tag {
       font-size: 0.62rem;
       padding: 2px 6px;
       border-radius: 99px;
       font-weight: 600;
     }
-    .player-tag.you { background: rgba(99, 179, 237, 0.2); color: var(--human-color); }
-    .player-tag.ai { background: rgba(159, 122, 234, 0.2); color: var(--ai-color); }
-    .player-tag.elim { background: rgba(245, 101, 101, 0.2); color: var(--danger); }
+
+    .player-tag.you {
+      background: rgba(99, 179, 237, 0.2);
+      color: var(--human-color);
+    }
+
+    .player-tag.ai {
+      background: rgba(159, 122, 234, 0.2);
+      color: var(--ai-color);
+    }
+
+    .player-tag.elim {
+      background: rgba(245, 101, 101, 0.2);
+      color: var(--danger);
+    }
 
     /* 이벤트 로그 */
     .event-log {
@@ -314,9 +415,20 @@
       overflow-y: auto;
       padding: 12px 16px;
     }
-    .event-log::-webkit-scrollbar { width: 4px; }
-    .event-log::-webkit-scrollbar-track { background: transparent; }
-    .event-log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    .event-log::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .event-log::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .event-log::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 99px;
+    }
+
     .event-item {
       font-size: 0.74rem;
       color: var(--text-muted);
@@ -324,9 +436,18 @@
       border-bottom: 1px solid var(--border);
       line-height: 1.4;
     }
-    .event-item:last-child { border-bottom: none; }
-    .event-time { color: var(--text-muted); }
-    .event-text { color: var(--text-secondary); }
+
+    .event-item:last-child {
+      border-bottom: none;
+    }
+
+    .event-time {
+      color: var(--text-muted);
+    }
+
+    .event-text {
+      color: var(--text-secondary);
+    }
 
     /* ── 채팅 영역 ───────────────────────────── */
     .chat-area {
@@ -346,6 +467,7 @@
       align-items: center;
       justify-content: space-between;
     }
+
     .chat-mode-badge {
       font-size: 0.72rem;
       font-weight: 600;
@@ -364,15 +486,26 @@
       flex-direction: column;
       gap: 10px;
     }
-    .messages::-webkit-scrollbar { width: 5px; }
-    .messages::-webkit-scrollbar-track { background: transparent; }
-    .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    .messages::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .messages::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 99px;
+    }
 
     /* 시스템 메시지 */
     .msg-system {
       display: flex;
       justify-content: center;
     }
+
     .msg-system-inner {
       background: var(--bg-card2);
       border: 1px solid var(--border);
@@ -390,24 +523,47 @@
       gap: 10px;
       align-items: flex-start;
     }
-    .msg-chat.mine { flex-direction: row-reverse; }
+
+    .msg-chat.mine {
+      flex-direction: row-reverse;
+    }
+
     .msg-avatar {
-      width: 32px; height: 32px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 0.78rem;
       font-weight: 700;
       flex-shrink: 0;
     }
-    .msg-avatar.human { background: rgba(99, 179, 237, 0.2); color: var(--human-color); }
-    .msg-avatar.ai { background: rgba(159, 122, 234, 0.2); color: var(--ai-color); }
-    .msg-body { max-width: 65%; }
+
+    .msg-avatar.human {
+      background: rgba(99, 179, 237, 0.2);
+      color: var(--human-color);
+    }
+
+    .msg-avatar.ai {
+      background: rgba(159, 122, 234, 0.2);
+      color: var(--ai-color);
+    }
+
+    .msg-body {
+      max-width: 65%;
+    }
+
     .msg-name {
       font-size: 0.72rem;
       color: var(--text-muted);
       margin-bottom: 4px;
     }
-    .mine .msg-name { text-align: right; }
+
+    .mine .msg-name {
+      text-align: right;
+    }
+
     .msg-bubble {
       padding: 9px 13px;
       border-radius: 12px;
@@ -415,16 +571,19 @@
       line-height: 1.5;
       word-break: break-word;
     }
+
     .msg-bubble.human-bubble {
       background: var(--bg-card2);
       border: 1px solid var(--border);
       color: var(--text-primary);
     }
+
     .msg-bubble.mine-bubble {
       background: var(--accent);
       color: #fff;
       border-radius: 12px 12px 4px 12px;
     }
+
     .msg-bubble.ai-bubble {
       background: rgba(159, 122, 234, 0.12);
       border: 1px solid rgba(159, 122, 234, 0.3);
@@ -439,12 +598,14 @@
       border-radius: 0 10px 10px 0;
       padding: 10px 14px;
     }
+
     .msg-exp-header {
       font-size: 0.72rem;
       color: var(--warning);
       font-weight: 600;
       margin-bottom: 5px;
     }
+
     .msg-exp-content {
       font-size: 0.88rem;
       color: var(--text-primary);
@@ -458,6 +619,7 @@
       border-radius: 12px;
       padding: 16px;
     }
+
     .judge-header {
       display: flex;
       align-items: center;
@@ -467,18 +629,25 @@
       margin-bottom: 10px;
       color: var(--danger);
     }
+
     .judge-target {
       font-size: 1.1rem;
       font-weight: 700;
       margin-bottom: 8px;
     }
+
     .judge-prob {
       display: flex;
       align-items: center;
       gap: 10px;
       margin-bottom: 8px;
     }
-    .judge-prob-label { font-size: 0.78rem; color: var(--text-secondary); }
+
+    .judge-prob-label {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
     .judge-prob-bar {
       flex: 1;
       height: 6px;
@@ -486,13 +655,20 @@
       border-radius: 99px;
       overflow: hidden;
     }
+
     .judge-prob-fill {
       height: 100%;
       background: linear-gradient(90deg, var(--success), var(--danger));
       border-radius: 99px;
       transition: width 0.8s ease;
     }
-    .judge-prob-val { font-size: 0.85rem; font-weight: 700; color: var(--danger); }
+
+    .judge-prob-val {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--danger);
+    }
+
     .judge-reason {
       font-size: 0.83rem;
       color: var(--text-secondary);
@@ -509,17 +685,32 @@
       border-radius: 14px;
       border: 1px solid var(--border);
     }
+
     .msg-gameover.human-win {
       background: linear-gradient(135deg, rgba(72, 187, 120, 0.1), rgba(99, 179, 237, 0.1));
       border-color: var(--success);
     }
+
     .msg-gameover.ai-win {
       background: linear-gradient(135deg, rgba(245, 101, 101, 0.1), rgba(159, 122, 234, 0.1));
       border-color: var(--danger);
     }
-    .gameover-emoji { font-size: 2.5rem; margin-bottom: 10px; }
-    .gameover-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 6px; }
-    .gameover-desc { font-size: 0.88rem; color: var(--text-secondary); }
+
+    .gameover-emoji {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    .gameover-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .gameover-desc {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
 
     /* ── 입력 영역 ───────────────────────────── */
     .input-area {
@@ -527,18 +718,22 @@
       padding: 14px 20px;
       background: var(--bg-card);
       flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
     .phase-hint {
       font-size: 0.76rem;
       color: var(--text-muted);
-      margin-bottom: 8px;
       display: flex;
       align-items: center;
       gap: 6px;
     }
+
     .phase-hint-dot {
-      width: 6px; height: 6px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
       background: var(--accent);
     }
@@ -549,7 +744,8 @@
       align-items: flex-end;
     }
 
-    #chat-input, #exp-input {
+    #chat-input,
+    #exp-input {
       flex: 1;
       background: var(--bg-input);
       border: 1px solid var(--border);
@@ -563,22 +759,29 @@
       transition: border-color 0.2s;
       line-height: 1.5;
     }
-    #chat-input:focus, #exp-input:focus { border-color: var(--accent); }
-    #chat-input:disabled, #exp-input:disabled {
-      opacity: 0.4;
+
+    #chat-input:focus,
+    #exp-input:focus {
+      border-color: var(--accent);
+    }
+
+    #chat-input:disabled,
+    #exp-input:disabled {
+      opacity: 0.5;
       cursor: not-allowed;
     }
-    #exp-input { min-height: 70px; }
 
-    .input-panels { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-    #panel-chat { display: none; }
-    #panel-experience { display: none; }
-    #panel-waiting { display: none; }
-    #panel-idle {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      padding: 10px 0;
-      text-align: center;
+    #exp-input {
+      min-height: 70px;
+    }
+
+    .special-panel {
+      display: none;
+      background: var(--bg-card2);
+      border: 1px solid var(--warning);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 5px;
     }
 
     /* 대기 패널 */
@@ -589,146 +792,155 @@
       gap: 12px;
       padding: 12px 0;
     }
+
     .waiting-spinner {
-      width: 20px; height: 20px;
+      width: 20px;
+      height: 20px;
       border: 2px solid var(--border);
       border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .waiting-text { font-size: 0.88rem; color: var(--text-secondary); }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .waiting-text {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
 
     /* 애니메이션 */
     .fade-in {
       animation: fadeIn 0.3s ease;
     }
+
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* 반응형 */
     @media (max-width: 900px) {
-      .sidebar { width: 200px; }
+      .sidebar {
+        width: 200px;
+      }
     }
+
     @media (max-width: 650px) {
-      .sidebar { display: none; }
-      .conn-row #inp-url { display: none; }
+      .sidebar {
+        display: none;
+      }
+
+      .conn-row #inp-url {
+        display: none;
+      }
     }
   </style>
 </head>
+
 <body>
 
-<!-- ── 헤더 ──────────────────────────────────── -->
-<header>
-  <div class="logo">
-    <span class="logo-icon">🕵️</span>
-    <span>AI 마피아</span>
-    <span class="logo-tag">DEV</span>
-  </div>
-
-  <div class="conn-row">
-    <input id="inp-url" type="text" value="ws://localhost:8000/ws" placeholder="WebSocket URL" />
-    <input id="inp-nickname" type="text" placeholder="닉네임" maxlength="20" />
-    <select id="inp-mode">
-      <option value="solo">솔로 (인간1 vs AI4)</option>
-      <option value="group">단체 (인간4 vs AI1)</option>
-    </select>
-    <button id="btn-connect" class="btn btn-primary" onclick="handleConnect()">연결</button>
-    <button id="btn-disconnect" class="btn btn-danger" onclick="handleDisconnect()" style="display:none">연결 해제</button>
-  </div>
-
-  <div class="status-badge">
-    <div id="status-dot" class="status-dot"></div>
-    <span id="status-text">미연결</span>
-  </div>
-</header>
-
-<!-- ── 메인 레이아웃 ─────────────────────────── -->
-<div class="main">
-
-  <!-- 사이드바 -->
-  <aside class="sidebar">
-
-    <!-- 게임 상태 -->
-    <div class="sidebar-section">
-      <div class="sidebar-title">게임 상태</div>
-      <div class="phase-display">
-        <div class="phase-label">현재 단계</div>
-        <div class="phase-value" id="phase-text">—</div>
-        <div class="round-info" id="round-info" style="display:none">라운드 <span id="round-num">0</span></div>
-        <div class="prompt-word" id="prompt-word" style="display:none"></div>
-        <div class="timer-bar-wrap" id="timer-wrap" style="display:none">
-          <div class="timer-text">
-            <span>자유 대화 타이머</span>
-            <span id="timer-val">—</span>
-          </div>
-          <div class="timer-bar"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
-        </div>
-      </div>
+  <!-- ── 헤더 ──────────────────────────────────── -->
+  <header>
+    <div class="logo">
+      <span class="logo-icon">🕵️</span>
+      <span>AI 마피아</span>
+      <span class="logo-tag">DEV</span>
     </div>
 
-    <!-- 플레이어 목록 -->
-    <div class="sidebar-section" style="flex:1;overflow-y:auto">
-      <div class="sidebar-title">플레이어</div>
-      <div class="player-list" id="player-list">
-        <div style="font-size:0.8rem;color:var(--text-muted)">게임 시작 후 표시됩니다</div>
-      </div>
+    <div class="conn-row">
+      <input id="inp-url" type="text" value="ws://localhost:8000/ws" placeholder="WebSocket URL" />
+      <input id="inp-nickname" type="text" placeholder="닉네임" maxlength="20" />
+      <select id="inp-mode">
+        <option value="solo">솔로 (인간1 vs AI4)</option>
+        <option value="group">단체 (인간4 vs AI1)</option>
+      </select>
+      <button id="btn-connect" class="btn btn-primary" onclick="handleConnect()">연결</button>
+      <button id="btn-disconnect" class="btn btn-danger" onclick="handleDisconnect()" style="display:none">연결
+        해제</button>
     </div>
 
-    <!-- 이벤트 로그 -->
-    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;border-top:1px solid var(--border)">
-      <div class="sidebar-section" style="border-bottom:none;padding-bottom:8px">
-        <div class="sidebar-title">이벤트 로그</div>
-      </div>
-      <div class="event-log" id="event-log"></div>
+    <div class="status-badge">
+      <div id="status-dot" class="status-dot"></div>
+      <span id="status-text">미연결</span>
     </div>
+  </header>
 
-  </aside>
+  <!-- ── 메인 레이아웃 ─────────────────────────── -->
+  <div class="main">
 
-  <!-- 채팅 영역 -->
-  <div class="chat-area">
-    <div class="chat-header">
-      <span id="chat-header-text">게임 메시지가 여기에 표시됩니다</span>
-      <span class="chat-mode-badge" id="chat-mode-badge">—</span>
-    </div>
+    <!-- 사이드바 -->
+    <aside class="sidebar">
 
-    <div class="messages" id="messages">
-      <div class="msg-system fade-in">
-        <div class="msg-system-inner">🕵️ 서버에 연결하여 게임을 시작하세요</div>
-      </div>
-    </div>
-
-    <!-- 입력 영역 -->
-    <div class="input-area">
-      <div class="input-panels">
-
-        <!-- 대기 -->
-        <div id="panel-waiting">
-          <div class="waiting-display">
-            <div class="waiting-spinner"></div>
-            <div class="waiting-text" id="waiting-text">대기 중...</div>
+      <!-- 게임 상태 -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">게임 상태</div>
+        <div class="phase-display">
+          <div class="phase-label">현재 단계</div>
+          <div class="phase-value" id="phase-text">—</div>
+          <div class="round-info" id="round-info" style="display:none">라운드 <span id="round-num">0</span></div>
+          <div class="prompt-word" id="prompt-word" style="display:none"></div>
+          <div class="timer-bar-wrap" id="timer-wrap" style="display:none">
+            <div class="timer-text">
+              <span>자유 대화 타이머</span>
+              <span id="timer-val">—</span>
+            </div>
+            <div class="timer-bar">
+              <div class="timer-fill" id="timer-fill" style="width:100%"></div>
+            </div>
           </div>
         </div>
+      </div>
 
-        <!-- 채팅 -->
-        <div id="panel-chat">
-          <div class="phase-hint">
-            <div class="phase-hint-dot"></div>
-            자유 대화 중입니다. 자연스럽게 대화에 참여하세요.
-          </div>
-          <div class="input-row">
-            <textarea id="chat-input" rows="1" placeholder="메시지 입력... (Enter로 전송, Shift+Enter 줄바꿈)"></textarea>
-            <button class="btn btn-send" id="btn-send-chat" onclick="sendChat()">전송</button>
-          </div>
+      <!-- 플레이어 목록 -->
+      <div class="sidebar-section" style="flex:1;overflow-y:auto">
+        <div class="sidebar-title">플레이어</div>
+        <div class="player-list" id="player-list">
+          <div style="font-size:0.8rem;color:var(--text-muted)">게임 시작 후 표시됩니다</div>
         </div>
+      </div>
 
-        <!-- 경험담 -->
-        <div id="panel-experience">
-          <div class="phase-hint">
+      <!-- 이벤트 로그 -->
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;border-top:1px solid var(--border)">
+        <div class="sidebar-section" style="border-bottom:none;padding-bottom:8px">
+          <div class="sidebar-title">이벤트 로그</div>
+        </div>
+        <div class="event-log" id="event-log"></div>
+      </div>
+
+    </aside>
+
+    <!-- 채팅 영역 -->
+    <div class="chat-area">
+      <div class="chat-header">
+        <span id="chat-header-text">게임 메시지가 여기에 표시됩니다</span>
+        <span class="chat-mode-badge" id="chat-mode-badge">—</span>
+      </div>
+
+      <div class="messages" id="messages">
+        <div class="msg-system fade-in">
+          <div class="msg-system-inner">🕵️ 서버에 연결하여 게임을 시작하세요</div>
+        </div>
+      </div>
+
+      <!-- 입력 영역 -->
+      <div class="input-area">
+        <!-- 경험담 특별 패널 (차례일 때만 표시) -->
+        <div id="panel-experience" class="special-panel">
+          <div class="phase-hint" style="margin-bottom:8px">
             <div class="phase-hint-dot" style="background:var(--warning)"></div>
-            <span id="exp-hint-text">경험담을 2줄 이내로 작성해주세요.</span>
+            <span id="exp-hint-text" style="color:var(--warning);font-weight:600">경험담을 2줄 이내로 작성해주세요.</span>
           </div>
           <div class="input-row">
             <textarea id="exp-input" rows="2" placeholder="제시어에 대한 나의 경험을 2줄 이내로..."></textarea>
@@ -736,413 +948,425 @@
           </div>
         </div>
 
-        <!-- 기본 대기 -->
-        <div id="panel-idle">서버에 연결하면 게임이 시작됩니다.</div>
+        <!-- 기본 상태 텍스트 (채팅 위) -->
+        <div id="status-hint" class="phase-hint">
+          <div class="phase-hint-dot" id="status-hint-dot" style="background:var(--text-muted)"></div>
+          <span id="status-hint-text">서버에 연결하면 게임이 시작됩니다.</span>
+        </div>
 
+        <!-- 상시 채팅 입력창 -->
+        <div class="input-row">
+          <textarea id="chat-input" rows="1" placeholder="자유 대화 시간에만 채팅을 입력할 수 있습니다." disabled></textarea>
+          <button class="btn btn-send" id="btn-send-chat" onclick="sendChat()" disabled>전송</button>
+        </div>
       </div>
     </div>
+
   </div>
 
-</div>
+  <script>
+    // ────────────────────────────────────────────────────
+    // 상태
+    // ────────────────────────────────────────────────────
+    let ws = null;
+    let myPlayerId = null;
+    let myNickname = '';
+    let players = [];
+    let currentPhase = null;
+    let timerInterval = null;
+    let timerTotal = 0;
+    let timerRemaining = 0;
 
-<script>
-  // ────────────────────────────────────────────────────
-  // 상태
-  // ────────────────────────────────────────────────────
-  let ws = null;
-  let myPlayerId = null;
-  let myNickname = '';
-  let players = [];
-  let currentPhase = null;
-  let timerInterval = null;
-  let timerTotal = 0;
-  let timerRemaining = 0;
+    const PHASE_LABELS = {
+      waiting: '대기 중',
+      round_start: '라운드 시작',
+      experience_sharing: '경험 공유',
+      free_chat: '자유 대화',
+      judging: 'AI 판정 중',
+      game_over: '게임 종료',
+    };
 
-  const PHASE_LABELS = {
-    waiting: '대기 중',
-    round_start: '라운드 시작',
-    experience_sharing: '경험 공유',
-    free_chat: '자유 대화',
-    judging: 'AI 판정 중',
-    game_over: '게임 종료',
-  };
+    // ────────────────────────────────────────────────────
+    // 연결 관리
+    // ────────────────────────────────────────────────────
+    function handleConnect() {
+      const url = document.getElementById('inp-url').value.trim();
+      const nickname = document.getElementById('inp-nickname').value.trim();
+      const mode = document.getElementById('inp-mode').value;
 
-  // ────────────────────────────────────────────────────
-  // 연결 관리
-  // ────────────────────────────────────────────────────
-  function handleConnect() {
-    const url = document.getElementById('inp-url').value.trim();
-    const nickname = document.getElementById('inp-nickname').value.trim();
-    const mode = document.getElementById('inp-mode').value;
+      if (!nickname) { alert('닉네임을 입력해주세요.'); return; }
+      if (!url) { alert('서버 URL을 입력해주세요.'); return; }
 
-    if (!nickname) { alert('닉네임을 입력해주세요.'); return; }
-    if (!url) { alert('서버 URL을 입력해주세요.'); return; }
+      myNickname = nickname;
+      const fullUrl = `${url}?mode=${mode}&nickname=${encodeURIComponent(nickname)}`;
 
-    myNickname = nickname;
-    const fullUrl = `${url}?mode=${mode}&nickname=${encodeURIComponent(nickname)}`;
+      try {
+        ws = new WebSocket(fullUrl);
+      } catch (e) {
+        setStatus('error', '연결 실패');
+        return;
+      }
 
-    try {
-      ws = new WebSocket(fullUrl);
-    } catch (e) {
-      setStatus('error', '연결 실패');
-      return;
+      setStatus('waiting', '연결 중...');
+
+      ws.onopen = () => {
+        setStatus('connected', '연결됨');
+        document.getElementById('btn-connect').style.display = 'none';
+        document.getElementById('btn-disconnect').style.display = '';
+        document.getElementById('chat-mode-badge').textContent = mode === 'solo' ? '솔로 모드' : '단체 모드';
+        logEvent('서버 연결 성공');
+
+        if (mode === 'group') {
+          setChatState(false, '단체 대기방에 입장했습니다...', '대기 중');
+        } else {
+          setChatState(false, '라운드 시작을 기다리는 중...', '대기 중');
+        }
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          handleMessage(msg);
+        } catch (e) {
+          console.error('메시지 파싱 오류:', e);
+        }
+      };
+
+      ws.onclose = () => {
+        setStatus('error', '연결 끊김');
+        document.getElementById('btn-connect').style.display = '';
+        document.getElementById('btn-disconnect').style.display = 'none';
+        setChatState(false, '서버 연결이 끊겼습니다.', '연결 끊김');
+        logEvent('연결 끊김');
+        stopTimer();
+      };
+
+      ws.onerror = (e) => {
+        setStatus('error', '오류 발생');
+        logEvent('WebSocket 오류 발생');
+      };
     }
 
-    setStatus('waiting', '연결 중...');
-
-    ws.onopen = () => {
-      setStatus('connected', '연결됨');
-      document.getElementById('btn-connect').style.display = 'none';
-      document.getElementById('btn-disconnect').style.display = '';
-      document.getElementById('chat-mode-badge').textContent = mode === 'solo' ? '솔로 모드' : '단체 모드';
-      logEvent('서버 연결 성공');
-
-      if (mode === 'group') {
-        showPanel('waiting');
-        document.getElementById('waiting-text').textContent = '단체 대기방에 입장했습니다...';
-      } else {
-        showPanel('idle');
-      }
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const msg = JSON.parse(event.data);
-        handleMessage(msg);
-      } catch (e) {
-        console.error('메시지 파싱 오류:', e);
-      }
-    };
-
-    ws.onclose = () => {
-      setStatus('error', '연결 끊김');
+    function handleDisconnect() {
+      if (ws) { ws.close(); ws = null; }
+      resetState();
+      setStatus('', '미연결');
+      setChatState(false, '서버에 연결하면 게임이 시작됩니다.', '미연결');
       document.getElementById('btn-connect').style.display = '';
       document.getElementById('btn-disconnect').style.display = 'none';
-      showPanel('idle');
-      document.getElementById('panel-idle').textContent = '연결이 끊겼습니다. 다시 연결해주세요.';
-      logEvent('연결 끊김');
-      stopTimer();
-    };
-
-    ws.onerror = (e) => {
-      setStatus('error', '오류 발생');
-      logEvent('WebSocket 오류 발생');
-    };
-  }
-
-  function handleDisconnect() {
-    if (ws) { ws.close(); ws = null; }
-    resetState();
-    setStatus('', '미연결');
-    showPanel('idle');
-    document.getElementById('panel-idle').textContent = '서버에 연결하면 게임이 시작됩니다.';
-    document.getElementById('btn-connect').style.display = '';
-    document.getElementById('btn-disconnect').style.display = 'none';
-  }
-
-  // ────────────────────────────────────────────────────
-  // 메시지 처리
-  // ────────────────────────────────────────────────────
-  function handleMessage(msg) {
-    const { type, data } = msg;
-    logEvent(type, data);
-
-    switch (type) {
-
-      case 'game_start':
-        handleGameStart(data);
-        break;
-
-      case 'waiting_room':
-        document.getElementById('waiting-text').textContent = data.message || '대기 중...';
-        appendSystemMsg(`⏳ ${data.message || '대기 중'}`);
-        break;
-
-      case 'round_start':
-        handleRoundStart(data);
-        break;
-
-      case 'experience_request':
-        handleExperienceRequest(data);
-        break;
-
-      case 'experience_submitted':
-        handleExperienceSubmitted(data);
-        break;
-
-      case 'experience_timeout':
-        appendSystemMsg(`⏰ ${data.nickname}님이 시간 초과로 패스했습니다.`);
-        break;
-
-      case 'free_chat_start':
-        handleFreeChatStart(data);
-        break;
-
-      case 'free_chat_end':
-        handleFreeChatEnd();
-        break;
-
-      case 'chat_message':
-        handleChatMessage(data);
-        break;
-
-      case 'judging_start':
-        currentPhase = 'judging';
-        setPhase('AI 판정 중...');
-        showPanel('idle');
-        document.getElementById('panel-idle').textContent = '🤔 LLM 판정관이 대화를 분석 중입니다...';
-        appendSystemMsg('🧠 LLM 판정관이 대화를 분석하고 있습니다...');
-        stopTimer();
-        break;
-
-      case 'judge_result':
-        handleJudgeResult(data);
-        break;
-
-      case 'player_eliminated':
-        appendSystemMsg(`🚫 ${data.nickname}님이 연결 끊김으로 탈락했습니다.`);
-        markEliminated(data.player_id);
-        break;
-
-      case 'game_over':
-        handleGameOver(data);
-        break;
-
-      case 'error':
-        appendSystemMsg(`❌ 오류: ${data.detail}`);
-        break;
     }
-  }
 
-  function handleGameStart(data) {
-    players = data.players;
-    // 내 id 찾기 (닉네임 기준)
-    const me = players.find(p => p.nickname === myNickname && p.is_human);
-    if (me) myPlayerId = me.id;
+    // ────────────────────────────────────────────────────
+    // 메시지 처리
+    // ────────────────────────────────────────────────────
+    function handleMessage(msg) {
+      const { type, data } = msg;
+      logEvent(type, data);
 
-    renderPlayers();
-    setPhase('게임 시작');
-    document.getElementById('chat-header-text').textContent = '게임이 시작되었습니다!';
-    appendSystemMsg(`🎮 게임 시작! 참가자: ${players.map(p => p.nickname).join(', ')}`);
-    showPanel('idle');
-    document.getElementById('panel-idle').textContent = '라운드 시작을 기다리는 중...';
-  }
+      switch (type) {
 
-  function handleRoundStart(data) {
-    currentPhase = 'round_start';
-    document.getElementById('round-info').style.display = '';
-    document.getElementById('round-num').textContent = data.round;
-    document.getElementById('prompt-word').style.display = '';
-    document.getElementById('prompt-word').textContent = `📌 ${data.prompt_word}`;
-    setPhase(`라운드 ${data.round} 시작`);
+        case 'game_start':
+          handleGameStart(data);
+          break;
 
-    const orderText = data.order.map((p, i) => `${i + 1}. ${p.nickname}`).join(' → ');
-    appendSystemMsg(`🎯 라운드 ${data.round} 시작! 제시어: "${data.prompt_word}"`);
-    appendSystemMsg(`📋 발언 순서: ${orderText}`);
-    showPanel('idle');
-    document.getElementById('panel-idle').textContent = '경험 공유 순서를 기다리는 중...';
-  }
+        case 'waiting_room':
+          document.getElementById('waiting-text').textContent = data.message || '대기 중...';
+          appendSystemMsg(`⏳ ${data.message || '대기 중'}`);
+          break;
 
-  function handleExperienceRequest(data) {
-    currentPhase = 'experience_sharing';
-    setPhase('경험 공유');
-    const isMyTurn = data.current_player_id === myPlayerId;
-    appendSystemMsg(`🎤 ${data.nickname}님의 경험 공유 차례 (${data.timeout}초)`);
+        case 'round_start':
+          handleRoundStart(data);
+          break;
 
-    // 모든 플레이어 강조 해제 후 현재 차례 강조
-    document.querySelectorAll('.player-item').forEach(el => el.classList.remove('current-turn'));
-    const playerEl = document.querySelector(`[data-pid="${data.current_player_id}"]`);
-    if (playerEl) playerEl.classList.add('current-turn');
+        case 'experience_request':
+          handleExperienceRequest(data);
+          break;
 
-    if (isMyTurn) {
-      const prompt = document.getElementById('prompt-word').textContent.replace('📌 ', '');
-      document.getElementById('exp-hint-text').textContent =
-        `"${prompt}"에 대한 경험을 2줄 이내로 작성하세요. (${data.timeout}초)`;
-      showPanel('experience');
-      document.getElementById('exp-input').focus();
-    } else {
-      showPanel('idle');
-      document.getElementById('panel-idle').textContent = `${data.nickname}님이 경험을 입력 중...`;
-    }
-  }
+        case 'experience_submitted':
+          handleExperienceSubmitted(data);
+          break;
 
-  function handleExperienceSubmitted(data) {
-    appendExperienceMsg(data.nickname, data.content, data.player_id);
-    // 경험 제출 후 내 입력 패널 닫기
-    if (data.player_id === myPlayerId) {
-      showPanel('idle');
-      document.getElementById('panel-idle').textContent = '다른 플레이어의 경험 공유를 기다리는 중...';
-    }
-    // 현재 차례 강조 해제
-    const playerEl = document.querySelector(`[data-pid="${data.player_id}"]`);
-    if (playerEl) playerEl.classList.remove('current-turn');
-  }
+        case 'experience_timeout':
+          appendSystemMsg(`⏰ ${data.nickname}님이 시간 초과로 패스했습니다.`);
+          break;
 
-  function handleFreeChatStart(data) {
-    currentPhase = 'free_chat';
-    setPhase('자유 대화');
-    timerTotal = data.duration;
-    timerRemaining = data.duration;
-    showPanel('chat');
-    document.getElementById('chat-input').focus();
-    appendSystemMsg(`💬 자유 대화 시작! ${data.duration}초 동안 자유롭게 대화하세요.`);
-    startTimer(data.duration);
-  }
+        case 'free_chat_start':
+          handleFreeChatStart(data);
+          break;
 
-  function handleFreeChatEnd() {
-    currentPhase = 'judging';
-    stopTimer();
-    showPanel('idle');
-    document.getElementById('panel-idle').textContent = '자유 대화 종료. 판정 대기 중...';
-    appendSystemMsg('⏰ 자유 대화 시간이 종료되었습니다.');
-  }
+        case 'free_chat_end':
+          handleFreeChatEnd();
+          break;
 
-  function handleChatMessage(data) {
-    const isMe = data.player_id === myPlayerId;
-    const player = players.find(p => p.id === data.player_id);
-    const isAI = player ? !player.is_human : false;
-    appendChatMsg(data.nickname, data.content, isMe, isAI, data.player_id);
-  }
+        case 'chat_message':
+          handleChatMessage(data);
+          break;
 
-  function handleJudgeResult(data) {
-    setPhase('판정 완료');
-    appendJudgeResult(data);
-    markEliminated(data.eliminated_player_id);
-    renderPlayers();
-    showPanel('idle');
-    document.getElementById('panel-idle').textContent =
-      data.was_human ? '인간이 탈락했습니다. 다음 라운드를 기다리는 중...' : '🎉 AI가 탈락했습니다!';
-  }
+        case 'judging_start':
+          currentPhase = 'judging';
+          setPhase('AI 판정 중...');
+          setChatState(false, '🤔 LLM 판정관이 대화를 분석 중입니다...', '판정 중');
+          appendSystemMsg('🧠 LLM 판정관이 대화를 분석하고 있습니다...');
+          stopTimer();
+          break;
 
-  function handleGameOver(data) {
-    currentPhase = 'game_over';
-    setPhase('게임 종료');
-    stopTimer();
-    showPanel('idle');
-    document.getElementById('panel-idle').textContent = '게임이 종료되었습니다.';
-    appendGameOver(data);
-    renderPlayers();
-  }
+        case 'judge_result':
+          handleJudgeResult(data);
+          break;
 
-  // ────────────────────────────────────────────────────
-  // 입력 전송
-  // ────────────────────────────────────────────────────
-  function sendChat() {
-    const input = document.getElementById('chat-input');
-    const content = input.value.trim();
-    if (!content || !ws) return;
-    ws.send(JSON.stringify({ type: 'send_chat', data: { content } }));
-    input.value = '';
-    input.style.height = 'auto';
-  }
+        case 'player_eliminated':
+          appendSystemMsg(`🚫 ${data.nickname}님이 연결 끊김으로 탈락했습니다.`);
+          markEliminated(data.player_id);
+          break;
 
-  function sendExperience() {
-    const input = document.getElementById('exp-input');
-    const content = input.value.trim();
-    if (!content || !ws) return;
-    ws.send(JSON.stringify({ type: 'submit_experience', data: { content } }));
-    input.value = '';
-  }
+        case 'game_over':
+          handleGameOver(data);
+          break;
 
-  // Enter 키 처리
-  document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('chat-input').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendChat();
+        case 'error':
+          appendSystemMsg(`❌ 오류: ${data.detail}`);
+          break;
       }
-    });
-    document.getElementById('inp-nickname').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') handleConnect();
-    });
-  });
-
-  // ────────────────────────────────────────────────────
-  // UI 헬퍼
-  // ────────────────────────────────────────────────────
-  function setStatus(type, text) {
-    const dot = document.getElementById('status-dot');
-    dot.className = 'status-dot ' + type;
-    document.getElementById('status-text').textContent = text;
-  }
-
-  function setPhase(label) {
-    document.getElementById('phase-text').textContent = label;
-  }
-
-  function showPanel(name) {
-    ['idle', 'chat', 'experience', 'waiting'].forEach(p => {
-      document.getElementById('panel-' + p).style.display = p === name ? '' : 'none';
-    });
-  }
-
-  function resetState() {
-    players = [];
-    myPlayerId = null;
-    currentPhase = null;
-    stopTimer();
-    renderPlayers();
-    setPhase('—');
-    document.getElementById('round-info').style.display = 'none';
-    document.getElementById('prompt-word').style.display = 'none';
-    document.getElementById('timer-wrap').style.display = 'none';
-    document.getElementById('messages').innerHTML = '';
-    document.getElementById('event-log').innerHTML = '';
-    document.getElementById('chat-mode-badge').textContent = '—';
-  }
-
-  function renderPlayers() {
-    const list = document.getElementById('player-list');
-    if (!players.length) {
-      list.innerHTML = '<div style="font-size:0.8rem;color:var(--text-muted)">게임 시작 후 표시됩니다</div>';
-      return;
     }
-    list.innerHTML = players.map(p => {
-      const isMe = p.id === myPlayerId;
-      const avatarClass = p.is_human ? 'human' : 'ai';
-      const avatarLetter = p.nickname.charAt(0).toUpperCase();
-      let tag = '';
-      if (p.is_eliminated) tag = '<span class="player-tag elim">탈락</span>';
-      else if (isMe) tag = '<span class="player-tag you">나</span>';
-      else if (!p.is_human) tag = '<span class="player-tag ai">AI?</span>';
-      return `
+
+    function handleGameStart(data) {
+      players = data.players;
+      // 내 id 찾기 (닉네임 기준)
+      const me = players.find(p => p.nickname === myNickname && p.is_human);
+      if (me) myPlayerId = me.id;
+
+      renderPlayers();
+      setPhase('게임 시작');
+      document.getElementById('chat-header-text').textContent = '게임이 시작되었습니다!';
+      appendSystemMsg(`🎮 게임 시작! 참가자: ${players.map(p => p.nickname).join(', ')}`);
+      setChatState(false, '라운드 시작을 기다리는 중...', '대기 중');
+    }
+
+    function handleRoundStart(data) {
+      currentPhase = 'round_start';
+      document.getElementById('round-info').style.display = '';
+      document.getElementById('round-num').textContent = data.round;
+      document.getElementById('prompt-word').style.display = '';
+      document.getElementById('prompt-word').textContent = `📌 ${data.prompt_word}`;
+      setPhase(`라운드 ${data.round} 시작`);
+
+      const orderText = data.order.map((p, i) => `${i + 1}. ${p.nickname}`).join(' → ');
+      appendSystemMsg(`🎯 라운드 ${data.round} 시작! 제시어: "${data.prompt_word}"`);
+      appendSystemMsg(`📋 발언 순서: ${orderText}`);
+      setChatState(false, '경험 공유 순서를 기다리는 중...', '경험 공유 중');
+    }
+
+    function handleExperienceRequest(data) {
+      currentPhase = 'experience_sharing';
+      setPhase('경험 공유');
+      const isMyTurn = data.current_player_id === myPlayerId;
+      appendSystemMsg(`🎤 ${data.nickname}님의 경험 공유 차례 (${data.timeout}초)`);
+
+      document.querySelectorAll('.player-item').forEach(el => el.classList.remove('current-turn'));
+      const playerEl = document.querySelector(`[data-pid="${data.current_player_id}"]`);
+      if (playerEl) playerEl.classList.add('current-turn');
+
+      if (isMyTurn) {
+        const prompt = document.getElementById('prompt-word').textContent.replace('📌 ', '');
+        document.getElementById('exp-hint-text').textContent =
+          `"${prompt}"에 대한 경험을 2줄 이내로 작성하세요. (${data.timeout}초)`;
+        document.getElementById('panel-experience').style.display = 'block';
+        document.getElementById('exp-input').focus();
+        setChatState(false, '당신의 차례입니다. 위의 입력창에 경험담을 작성해주세요.', '내 차례');
+      } else {
+        document.getElementById('panel-experience').style.display = 'none';
+        setChatState(false, `${data.nickname}님이 경험담을 작성 중입니다...`, '경험 공유 중');
+      }
+    }
+
+    function handleExperienceSubmitted(data) {
+      appendExperienceMsg(data.nickname, data.content, data.player_id);
+      if (data.player_id === myPlayerId) {
+        document.getElementById('panel-experience').style.display = 'none';
+        setChatState(false, '다른 플레이어의 경험 공유를 기다리는 중...', '대기 중');
+      }
+      const playerEl = document.querySelector(`[data-pid="${data.player_id}"]`);
+      if (playerEl) playerEl.classList.remove('current-turn');
+    }
+
+    function handleFreeChatStart(data) {
+      currentPhase = 'free_chat';
+      setPhase('자유 대화');
+      timerTotal = data.duration;
+      timerRemaining = data.duration;
+      document.getElementById('panel-experience').style.display = 'none';
+      setChatState(true, '자유 대화 중입니다. 자연스럽게 대화에 참여하세요.', '자유 대화');
+      appendSystemMsg(`💬 자유 대화 시작! ${data.duration}초 동안 자유롭게 대화하세요.`);
+      startTimer(data.duration);
+    }
+
+    function handleFreeChatEnd() {
+      currentPhase = 'judging';
+      stopTimer();
+      setChatState(false, '자유 대화 종료. 판정 대기 중...', '판정 중');
+      appendSystemMsg('⏰ 자유 대화 시간이 종료되었습니다.');
+    }
+
+    function handleChatMessage(data) {
+      const isMe = data.player_id === myPlayerId;
+      const player = players.find(p => p.id === data.player_id);
+      const isAI = player ? !player.is_human : false;
+      appendChatMsg(data.nickname, data.content, isMe, isAI, data.player_id);
+    }
+
+    function handleJudgeResult(data) {
+      setPhase('판정 완료');
+      appendJudgeResult(data);
+      markEliminated(data.eliminated_player_id);
+      renderPlayers();
+      const txt = data.was_human ? '인간이 탈락했습니다. 다음 라운드를 기다리는 중...' : '🎉 AI가 탈락했습니다!';
+      setChatState(false, txt, '대기 중');
+    }
+
+    function handleGameOver(data) {
+      currentPhase = 'game_over';
+      setPhase('게임 종료');
+      stopTimer();
+      setChatState(false, '게임이 종료되었습니다.', '게임 종료');
+      appendGameOver(data);
+      renderPlayers();
+    }
+
+    // ────────────────────────────────────────────────────
+    // 입력 전송
+    // ────────────────────────────────────────────────────
+    function sendChat() {
+      const input = document.getElementById('chat-input');
+      const content = input.value.trim();
+      if (!content || !ws) return;
+      ws.send(JSON.stringify({ type: 'send_chat', data: { content } }));
+      input.value = '';
+      input.style.height = 'auto';
+    }
+
+    function sendExperience() {
+      const input = document.getElementById('exp-input');
+      const content = input.value.trim();
+      if (!content || !ws) return;
+      ws.send(JSON.stringify({ type: 'submit_experience', data: { content } }));
+      input.value = '';
+    }
+
+    // Enter 키 처리
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('chat-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendChat();
+        }
+      });
+      document.getElementById('inp-nickname').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleConnect();
+      });
+    });
+
+    // ────────────────────────────────────────────────────
+    // UI 헬퍼
+    // ────────────────────────────────────────────────────
+    function setStatus(type, text) {
+      const dot = document.getElementById('status-dot');
+      dot.className = 'status-dot ' + type;
+      document.getElementById('status-text').textContent = text;
+    }
+
+    function setPhase(label) {
+      document.getElementById('phase-text').textContent = label;
+    }
+
+    function setChatState(enabled, hintText, phaseHintName = '') {
+      const input = document.getElementById('chat-input');
+      const btn = document.getElementById('btn-send-chat');
+      const hint = document.getElementById('status-hint-text');
+      const dot = document.getElementById('status-hint-dot');
+
+      input.disabled = !enabled;
+      btn.disabled = !enabled;
+      hint.textContent = hintText;
+
+      if (enabled) {
+        dot.style.background = 'var(--accent)';
+        input.placeholder = '메시지 입력... (Enter로 전송, Shift+Enter 줄바꿈)';
+        input.focus();
+      } else {
+        dot.style.background = 'var(--text-muted)';
+        input.placeholder = '자유 대화 시간에만 입력할 수 있습니다.';
+        if (phaseHintName) hint.textContent = `[${phaseHintName}] ${hintText}`;
+      }
+    }
+
+    function resetState() {
+      players = [];
+      myPlayerId = null;
+      currentPhase = null;
+      stopTimer();
+      renderPlayers();
+      setPhase('—');
+      document.getElementById('round-info').style.display = 'none';
+      document.getElementById('prompt-word').style.display = 'none';
+      document.getElementById('timer-wrap').style.display = 'none';
+      document.getElementById('messages').innerHTML = '';
+      document.getElementById('event-log').innerHTML = '';
+      document.getElementById('chat-mode-badge').textContent = '—';
+      document.getElementById('panel-experience').style.display = 'none';
+    }
+
+    function renderPlayers() {
+      const list = document.getElementById('player-list');
+      if (!players.length) {
+        list.innerHTML = '<div style="font-size:0.8rem;color:var(--text-muted)">게임 시작 후 표시됩니다</div>';
+        return;
+      }
+      list.innerHTML = players.map(p => {
+        const isMe = p.id === myPlayerId;
+        const avatarClass = p.is_human ? 'human' : 'ai';
+        const avatarLetter = p.nickname.charAt(0).toUpperCase();
+        let tag = '';
+        if (p.is_eliminated) tag = '<span class="player-tag elim">탈락</span>';
+        else if (isMe) tag = '<span class="player-tag you">나</span>';
+        else if (!p.is_human) tag = '<span class="player-tag ai">AI?</span>';
+        return `
         <div class="player-item ${p.is_eliminated ? 'eliminated' : ''}" data-pid="${p.id}">
           <div class="player-avatar ${avatarClass}">${avatarLetter}</div>
           <span class="player-name">${p.nickname}</span>
           ${tag}
         </div>`;
-    }).join('');
-  }
+      }).join('');
+    }
 
-  function markEliminated(playerId) {
-    const p = players.find(pl => pl.id === playerId);
-    if (p) p.is_eliminated = true;
-    renderPlayers();
-  }
+    function markEliminated(playerId) {
+      const p = players.find(pl => pl.id === playerId);
+      if (p) p.is_eliminated = true;
+      renderPlayers();
+    }
 
-  // ── 메시지 추가 헬퍼 ─────────────────────────
-  function scrollToBottom() {
-    const msgs = document.getElementById('messages');
-    msgs.scrollTop = msgs.scrollHeight;
-  }
+    // ── 메시지 추가 헬퍼 ─────────────────────────
+    function scrollToBottom() {
+      const msgs = document.getElementById('messages');
+      msgs.scrollTop = msgs.scrollHeight;
+    }
 
-  function appendSystemMsg(text) {
-    const msgs = document.getElementById('messages');
-    msgs.insertAdjacentHTML('beforeend', `
+    function appendSystemMsg(text) {
+      const msgs = document.getElementById('messages');
+      msgs.insertAdjacentHTML('beforeend', `
       <div class="msg-system fade-in">
         <div class="msg-system-inner">${text}</div>
       </div>`);
-    scrollToBottom();
-  }
+      scrollToBottom();
+    }
 
-  function appendChatMsg(nickname, content, isMe, isAI, playerId) {
-    const msgs = document.getElementById('messages');
-    const avatarClass = isAI ? 'ai' : 'human';
-    const bubbleClass = isMe ? 'mine-bubble' : (isAI ? 'ai-bubble' : 'human-bubble');
-    const letter = nickname.charAt(0).toUpperCase();
-    const timeStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+    function appendChatMsg(nickname, content, isMe, isAI, playerId) {
+      const msgs = document.getElementById('messages');
+      const avatarClass = isAI ? 'ai' : 'human';
+      const bubbleClass = isMe ? 'mine-bubble' : (isAI ? 'ai-bubble' : 'human-bubble');
+      const letter = nickname.charAt(0).toUpperCase();
+      const timeStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
 
-    msgs.insertAdjacentHTML('beforeend', `
+      msgs.insertAdjacentHTML('beforeend', `
       <div class="msg-chat ${isMe ? 'mine' : ''} fade-in">
         <div class="msg-avatar ${avatarClass}">${letter}</div>
         <div class="msg-body">
@@ -1150,26 +1374,26 @@
           <div class="msg-bubble ${bubbleClass}">${escHtml(content)}</div>
         </div>
       </div>`);
-    scrollToBottom();
-  }
+      scrollToBottom();
+    }
 
-  function appendExperienceMsg(nickname, content, playerId) {
-    const msgs = document.getElementById('messages');
-    msgs.insertAdjacentHTML('beforeend', `
+    function appendExperienceMsg(nickname, content, playerId) {
+      const msgs = document.getElementById('messages');
+      msgs.insertAdjacentHTML('beforeend', `
       <div class="msg-experience fade-in">
         <div class="msg-exp-header">🗣 ${escHtml(nickname)}의 경험담</div>
         <div class="msg-exp-content">${escHtml(content)}</div>
       </div>`);
-    scrollToBottom();
-  }
+      scrollToBottom();
+    }
 
-  function appendJudgeResult(data) {
-    const msgs = document.getElementById('messages');
-    const prob = data.human_probability;
-    const wasHumanText = data.was_human === true ? ' <span style="color:var(--danger)">(실제 인간)</span>'
-      : data.was_human === false ? ' <span style="color:var(--ai-color)">(실제 AI)</span>' : '';
+    function appendJudgeResult(data) {
+      const msgs = document.getElementById('messages');
+      const prob = data.human_probability;
+      const wasHumanText = data.was_human === true ? ' <span style="color:var(--danger)">(실제 인간)</span>'
+        : data.was_human === false ? ' <span style="color:var(--ai-color)">(실제 AI)</span>' : '';
 
-    msgs.insertAdjacentHTML('beforeend', `
+      msgs.insertAdjacentHTML('beforeend', `
       <div class="msg-judge fade-in">
         <div class="judge-header">🔍 LLM 판정 결과</div>
         <div class="judge-target">
@@ -1184,82 +1408,83 @@
         </div>
         <div class="judge-reason">💬 ${escHtml(data.reason)}</div>
       </div>`);
-    scrollToBottom();
-  }
+      scrollToBottom();
+    }
 
-  function appendGameOver(data) {
-    const msgs = document.getElementById('messages');
-    const isHumanWin = data.result === 'human_win';
-    const emoji = isHumanWin ? '🎉' : '😈';
-    const titleClass = isHumanWin ? 'human-win' : 'ai-win';
-    const title = isHumanWin ? '인간 승리!' : 'AI 승리!';
+    function appendGameOver(data) {
+      const msgs = document.getElementById('messages');
+      const isHumanWin = data.result === 'human_win';
+      const emoji = isHumanWin ? '🎉' : '😈';
+      const titleClass = isHumanWin ? 'human-win' : 'ai-win';
+      const title = isHumanWin ? '인간 승리!' : 'AI 승리!';
 
-    const playerRows = (data.players || []).map(p =>
-      `<span style="color:${p.is_eliminated ? 'var(--text-muted)' : (p.is_human ? 'var(--human-color)' : 'var(--ai-color)')}">
+      const playerRows = (data.players || []).map(p =>
+        `<span style="color:${p.is_eliminated ? 'var(--text-muted)' : (p.is_human ? 'var(--human-color)' : 'var(--ai-color)')}">
         ${p.nickname}${p.is_eliminated ? '(탈락)' : ''}${!p.is_human ? ' 🤖' : ''}
       </span>`
-    ).join(' / ');
+      ).join(' / ');
 
-    msgs.insertAdjacentHTML('beforeend', `
+      msgs.insertAdjacentHTML('beforeend', `
       <div class="msg-gameover ${titleClass} fade-in">
         <div class="gameover-emoji">${emoji}</div>
         <div class="gameover-title">${title}</div>
         <div class="gameover-desc">${escHtml(data.message || '')}</div>
         <div style="margin-top:12px;font-size:0.8rem;color:var(--text-muted)">${playerRows}</div>
       </div>`);
-    scrollToBottom();
-  }
+      scrollToBottom();
+    }
 
-  // ── 타이머 ───────────────────────────────────
-  function startTimer(duration) {
-    const wrap = document.getElementById('timer-wrap');
-    const val = document.getElementById('timer-val');
-    const fill = document.getElementById('timer-fill');
-    wrap.style.display = '';
-    timerTotal = duration;
-    timerRemaining = duration;
+    // ── 타이머 ───────────────────────────────────
+    function startTimer(duration) {
+      const wrap = document.getElementById('timer-wrap');
+      const val = document.getElementById('timer-val');
+      const fill = document.getElementById('timer-fill');
+      wrap.style.display = '';
+      timerTotal = duration;
+      timerRemaining = duration;
 
-    stopTimer();
-    timerInterval = setInterval(() => {
-      timerRemaining--;
-      val.textContent = `${timerRemaining}초`;
-      const pct = Math.max(0, (timerRemaining / timerTotal) * 100);
-      fill.style.width = pct + '%';
-      if (timerRemaining <= 30) {
-        fill.style.background = 'var(--danger)';
-      } else if (timerRemaining <= 60) {
-        fill.style.background = 'var(--warning)';
-      }
-      if (timerRemaining <= 0) stopTimer();
-    }, 1000);
-  }
+      stopTimer();
+      timerInterval = setInterval(() => {
+        timerRemaining--;
+        val.textContent = `${timerRemaining}초`;
+        const pct = Math.max(0, (timerRemaining / timerTotal) * 100);
+        fill.style.width = pct + '%';
+        if (timerRemaining <= 30) {
+          fill.style.background = 'var(--danger)';
+        } else if (timerRemaining <= 60) {
+          fill.style.background = 'var(--warning)';
+        }
+        if (timerRemaining <= 0) stopTimer();
+      }, 1000);
+    }
 
-  function stopTimer() {
-    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-    document.getElementById('timer-wrap').style.display = 'none';
-  }
+    function stopTimer() {
+      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+      document.getElementById('timer-wrap').style.display = 'none';
+    }
 
-  // ── 이벤트 로그 ─────────────────────────────
-  function logEvent(type, data) {
-    const log = document.getElementById('event-log');
-    const time = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    log.insertAdjacentHTML('beforeend', `
+    // ── 이벤트 로그 ─────────────────────────────
+    function logEvent(type, data) {
+      const log = document.getElementById('event-log');
+      const time = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      log.insertAdjacentHTML('beforeend', `
       <div class="event-item">
         <span class="event-time">[${time}]</span>
         <span class="event-text"> ${escHtml(type)}</span>
       </div>`);
-    log.scrollTop = log.scrollHeight;
-  }
+      log.scrollTop = log.scrollHeight;
+    }
 
-  // XSS 방지
-  function escHtml(str) {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/\n/g, '<br>');
-  }
-</script>
+    // XSS 방지
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/\n/g, '<br>');
+    }
+  </script>
 </body>
+
 </html>

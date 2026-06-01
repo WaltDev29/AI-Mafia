@@ -201,6 +201,9 @@ async def _run_experience_sharing(
                         data={"player_id": pid, "nickname": player.nickname},
                     ),
                 )
+        
+        # 차례 넘기기
+        game.experience_index += 1
 
 
 async def _wait_for_experience(
@@ -271,6 +274,13 @@ async def _ai_chat_loop(
     last_chat_time = start    # 마지막 메시지 수신 시각
     stop_spontaneous_at = start + duration - 30  # 종료 30초 전부터 선제 발화 금지
 
+    # 경험담 정보를 문자열로 구성
+    experience_lines = []
+    for p in game.alive_players:
+        exp = game.experience_submissions.get(p.id, "(미제출)")
+        experience_lines.append(f"- {p.nickname}: {exp}")
+    experience_text = "\n".join(experience_lines)
+
     while True:
         now = time.monotonic()
         current_count = len(game.chat_history)
@@ -292,7 +302,7 @@ async def _ai_chat_loop(
             ):
                 continue
 
-            content = await ai.generate_chat_response(game.chat_history)
+            content = await ai.generate_chat_response(game.chat_history, experience_text)
             await _broadcast_ai_chat(game, ai.player, content)
 
         elif now - last_chat_time > AIPlayer._SPONTANEOUS_IDLE_SEC:
@@ -303,7 +313,7 @@ async def _ai_chat_loop(
                     game.chat_history
                     and game.chat_history[-1].player_id == ai.player.id
                 ):
-                    content = await ai.generate_spontaneous_message(game.chat_history)
+                    content = await ai.generate_spontaneous_message(game.chat_history, experience_text)
                     await _broadcast_ai_chat(game, ai.player, content)
                 last_chat_time = now  # 선제 발화 후 타이머 리셋
 
