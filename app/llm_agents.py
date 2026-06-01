@@ -27,8 +27,8 @@ class AIPlayer:
     """
 
     # 자유 대화 전략 상수
-    _REACTION_DELAY_MIN = 3   # 반응형 최소 딜레이(초)
-    _REACTION_DELAY_MAX = 8   # 반응형 최대 딜레이(초)
+    _REACTION_DELAY_MIN = 5   # 반응형 최소 딜레이(초)
+    _REACTION_DELAY_MAX = 10   # 반응형 최대 딜레이(초)
     _SPONTANEOUS_IDLE_SEC = 30  # 선제 발화 트리거: 이 초 이상 침묵
 
     def __init__(self, player: Player):

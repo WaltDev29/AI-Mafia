@@ -170,7 +170,7 @@ async def _run_experience_sharing(
 
         if not player.is_human:
             # AI는 즉시 경험담 생성 (약간의 자연스러운 딜레이)
-            await asyncio.sleep(random.uniform(1.5, 3.5))
+            await asyncio.sleep(random.uniform(5.0, 8.0))
             experience = await ai_agents[pid].generate_experience(
                 game.current_prompt_word
             )
