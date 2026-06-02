@@ -37,11 +37,7 @@ PROMPT_WORDS = [
     "노래방", "도서관", "취업 준비", "밤새우기", "길을 잃은 날",
 ]
 
-# 솔로 모드용 AI 닉네임 풀
-AI_NICKNAMES = [
-    "알파", "베타", "감마", "델타", "엡실론",
-    "제타", "에타", "세타", "아이오타", "카파",
-]
+# AI 플레이어 생성을 위한 모듈 (이제 닉네임 사용 안함)
 
 
 def _build_player_list_payload(game: GameState) -> dict:
@@ -52,7 +48,6 @@ def _build_player_list_payload(game: GameState) -> dict:
         "players": [
             {
                 "id": p.id,
-                "nickname": p.nickname,
                 "is_human": p.is_human,  # 프론트에서 자기 자신 확인용
                 "is_eliminated": p.is_eliminated,
             }
@@ -120,7 +115,7 @@ async def start_game(game: GameState) -> None:
                         "round": game.round_number,
                         "prompt_word": prompt_word,
                         "order": [
-                            {"id": p.id, "nickname": p.nickname}
+                            {"id": p.id}
                             for p in alive
                         ],
                     },
@@ -169,7 +164,6 @@ async def _run_experience_sharing(
                 type=WsMessageType.EXPERIENCE_REQUEST,
                 data={
                     "current_player_id": pid,
-                    "current_nickname": player.nickname,
                     "timeout": settings.EXPERIENCE_TIMEOUT,
                 },
             ),
@@ -177,12 +171,12 @@ async def _run_experience_sharing(
 
         if not player.is_human:
             # AI는 즉시 경험담 생성 (약간의 자연스러운 딜레이)
-            await _broadcast_typing(game, pid, player.nickname, True)
+            await _broadcast_typing(game, pid, True)
             await asyncio.sleep(random.uniform(5.0, 8.0))
             experience = await ai_agents[pid].generate_experience(
                 game.current_prompt_word
             )
-            await _broadcast_typing(game, pid, player.nickname, False)
+            await _broadcast_typing(game, pid, False)
             game.experience_submissions[pid] = experience
             await connection_manager.broadcast_to_game(
                 game,
@@ -190,7 +184,6 @@ async def _run_experience_sharing(
                     type=WsMessageType.EXPERIENCE_SUBMITTED,
                     data={
                         "player_id": pid,
-                        "nickname": player.nickname,
                         "content": experience,
                     },
                 ),
@@ -207,7 +200,7 @@ async def _run_experience_sharing(
                     game,
                     WsMessage(
                         type=WsMessageType.EXPERIENCE_TIMEOUT,
-                        data={"player_id": pid, "nickname": player.nickname},
+                        data={"player_id": pid},
                     ),
                 )
         
@@ -233,7 +226,7 @@ async def _wait_for_experience(
     return False
 
 
-async def _broadcast_typing(game: GameState, player_id: str, nickname: str, is_typing: bool) -> None:
+async def _broadcast_typing(game: GameState, player_id: str, is_typing: bool) -> None:
     """AI 플레이어의 타이핑 상태를 브로드캐스트한다."""
     await connection_manager.broadcast_to_game(
         game,
@@ -241,7 +234,6 @@ async def _broadcast_typing(game: GameState, player_id: str, nickname: str, is_t
             type=WsMessageType.TYPING_STATUS,
             data={
                 "player_id": player_id,
-                "nickname": nickname,
                 "is_typing": is_typing,
             },
         ),
@@ -302,7 +294,8 @@ async def _ai_chat_loop(
     experience_lines = []
     for p in game.alive_players:
         exp = game.experience_submissions.get(p.id, "(미제출)")
-        experience_lines.append(f"- {p.nickname}: {exp}")
+        p_name = f"Player {game.players.index(p) + 1}"
+        experience_lines.append(f"- {p_name}: {exp}")
     experience_text = "\n".join(experience_lines)
 
     while True:
@@ -321,14 +314,14 @@ async def _ai_chat_loop(
         ):
             continue
             
-        await _broadcast_typing(game, ai.player.id, ai.player.nickname, True)
+        await _broadcast_typing(game, ai.player.id, True)
         
         # 실제 타이핑 시간 느낌을 위해 약간의 추가 대기
         await asyncio.sleep(random.uniform(1.5, 3.0))
         
         content = await ai.generate_chat_response(game.chat_history, experience_text)
         
-        await _broadcast_typing(game, ai.player.id, ai.player.nickname, False)
+        await _broadcast_typing(game, ai.player.id, False)
         
         # 찰나의 순간에 게임이 넘어갔을 수 있으므로 재확인
         if game.phase != GamePhase.FREE_CHAT or ai.player.is_eliminated:
@@ -343,7 +336,6 @@ async def _broadcast_ai_chat(
     """AI 채팅 메시지를 게임 채팅 히스토리에 기록하고 브로드캐스트한다."""
     msg = ChatMessage(
         player_id=player.id,
-        nickname=player.nickname,
         content=content,
         timestamp=time.time(),
     )
@@ -354,7 +346,6 @@ async def _broadcast_ai_chat(
             type=WsMessageType.CHAT_MESSAGE,
             data={
                 "player_id": player.id,
-                "nickname": player.nickname,
                 "content": content,
                 "timestamp": msg.timestamp,
             },
@@ -382,7 +373,6 @@ async def _run_judging(game: GameState, judge: LLMJudge) -> None:
         from .models import JudgeResult
         result = JudgeResult(
             eliminated_player_id=fallback_player.id,
-            eliminated_nickname=fallback_player.nickname,
             human_probability=50,
             reason="판정 시스템 오류로 인해 랜덤 탈락이 적용되었습니다.",
         )
@@ -395,7 +385,7 @@ async def _run_judging(game: GameState, judge: LLMJudge) -> None:
     if eliminated:
         eliminated.is_eliminated = True
         logger.info(
-            f"[game_logic] 탈락: {eliminated.nickname} "
+            f"[game_logic] 탈락: {eliminated.id} "
             f"(is_human={eliminated.is_human}, prob={result.human_probability}%)"
         )
 
@@ -406,7 +396,6 @@ async def _run_judging(game: GameState, judge: LLMJudge) -> None:
             type=WsMessageType.JUDGE_RESULT,
             data={
                 "eliminated_player_id": result.eliminated_player_id,
-                "eliminated_nickname": result.eliminated_nickname,
                 "human_probability": result.human_probability,
                 "reason": result.reason,
                 "was_human": eliminated.is_human if eliminated else None,
@@ -457,7 +446,6 @@ async def _handle_game_over(game: GameState, result: GameResult) -> None:
                 "players": [
                     {
                         "id": p.id,
-                        "nickname": p.nickname,
                         "is_human": p.is_human,
                         "is_eliminated": p.is_eliminated,
                     }
@@ -473,8 +461,7 @@ async def _handle_game_over(game: GameState, result: GameResult) -> None:
 
 def create_ai_players(count: int) -> list[Player]:
     """AI 플레이어 인스턴스를 생성한다."""
-    nicknames = random.sample(AI_NICKNAMES, min(count, len(AI_NICKNAMES)))
     return [
-        Player(nickname=nick, is_human=False)
-        for nick in nicknames[:count]
+        Player(is_human=False)
+        for _ in range(count)
     ]

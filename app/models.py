@@ -29,7 +29,6 @@ class Player(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    nickname: str
     is_human: bool
     is_eliminated: bool = False
     # WebSocket 객체는 직렬화하지 않음 (게임 로직에서만 참조)
@@ -39,7 +38,6 @@ class Player(BaseModel):
 class ChatMessage(BaseModel):
     """채팅 메시지"""
     player_id: str
-    nickname: str
     content: str
     timestamp: float  # Unix timestamp
 
@@ -47,7 +45,6 @@ class ChatMessage(BaseModel):
 class JudgeResult(BaseModel):
     """LLM 판정 결과"""
     eliminated_player_id: str
-    eliminated_nickname: str
     human_probability: int  # 사람이라고 판단한 확률 (0~100)
     reason: str
 
@@ -66,6 +63,7 @@ class GameResult(str, Enum):
 class WsMessageType(str, Enum):
     """WebSocket 메시지 타입"""
     # 서버 → 클라이언트
+    CONNECTED = "connected"                 # 연결 성공 및 본인 id 전달
     GAME_START = "game_start"               # 게임 시작 (플레이어 목록 전달)
     ROUND_START = "round_start"             # 라운드 시작 + 제시어
     EXPERIENCE_REQUEST = "experience_request"  # 경험 공유 요청 (현재 순서 플레이어에게)

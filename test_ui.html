@@ -113,10 +113,6 @@
       flex: 2;
     }
 
-    #inp-nickname {
-      flex: 1;
-    }
-
     #inp-mode {
       flex: 1;
     }
@@ -850,7 +846,10 @@
     /* 대기방 모달 */
     .waiting-modal {
       position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
       background: rgba(10, 11, 15, 0.85);
       backdrop-filter: blur(5px);
       display: flex;
@@ -860,23 +859,26 @@
       z-index: 9999;
       color: var(--text-primary);
     }
+
     .waiting-modal-content {
       background: var(--bg-card);
       border: 1px solid var(--border);
       padding: 40px;
       border-radius: 16px;
       text-align: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
+
     .waiting-spinner-large {
-      width: 50px; height: 50px;
+      width: 50px;
+      height: 50px;
       border: 4px solid var(--border);
       border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 1s linear infinite;
       margin: 0 auto 20px auto;
     }
-    
+
     /* 타이핑 인디케이터 */
     .typing-indicator {
       font-size: 0.8rem;
@@ -887,20 +889,39 @@
       align-items: center;
       gap: 6px;
     }
+
     .typing-dots {
-      display: flex; gap: 3px;
+      display: flex;
+      gap: 3px;
     }
+
     .typing-dot {
-      width: 4px; height: 4px;
+      width: 4px;
+      height: 4px;
       background: var(--text-secondary);
       border-radius: 50%;
       animation: typingBounce 1.4s infinite ease-in-out both;
     }
-    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+    .typing-dot:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+
     @keyframes typingBounce {
-      0%, 80%, 100% { transform: scale(0); }
-      40% { transform: scale(1); }
+
+      0%,
+      80%,
+      100% {
+        transform: scale(0);
+      }
+
+      40% {
+        transform: scale(1);
+      }
     }
   </style>
 </head>
@@ -917,7 +938,6 @@
 
     <div class="conn-row">
       <input id="inp-url" type="text" value="ws://localhost:8000/ws" placeholder="WebSocket URL" />
-      <input id="inp-nickname" type="text" placeholder="닉네임" maxlength="20" />
       <select id="inp-mode">
         <option value="solo">솔로 (인간1 vs AI4)</option>
         <option value="group">단체 (인간4 vs AI1)</option>
@@ -992,10 +1012,14 @@
 
       <!-- 입력 영역 -->
       <div class="input-area">
-        
+
         <!-- 타이핑 인디케이터 -->
         <div id="typing-indicator" class="typing-indicator" style="display:none">
-          <div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+          <div class="typing-dots">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
           <span id="typing-text">입력 중...</span>
         </div>
 
@@ -1042,7 +1066,7 @@
     // ────────────────────────────────────────────────────
     let ws = null;
     let myPlayerId = null;
-    let myNickname = '';
+    const playerNames = {};
     let players = [];
     let currentPhase = null;
     let timerInterval = null;
@@ -1162,7 +1186,7 @@
           break;
 
         case 'experience_timeout':
-          appendSystemMsg(`⏰ ${data.nickname}님이 시간 초과로 패스했습니다.`);
+          appendSystemMsg(`⏰ ${playerNames[data.player_id]}님이 시간 초과로 패스했습니다.`);
           break;
 
         case 'free_chat_start':
@@ -1194,7 +1218,7 @@
           break;
 
         case 'player_eliminated':
-          appendSystemMsg(`🚫 ${data.nickname}님이 연결 끊김으로 탈락했습니다.`);
+          appendSystemMsg(`🚫 ${playerNames[data.player_id]}님이 연결 끊김으로 탈락했습니다.`);
           markEliminated(data.player_id);
           break;
 
@@ -1217,7 +1241,7 @@
       renderPlayers();
       setPhase('게임 시작');
       document.getElementById('chat-header-text').textContent = '게임이 시작되었습니다!';
-      appendSystemMsg(`🎮 게임 시작! 참가자: ${players.map(p => p.nickname).join(', ')}`);
+      appendSystemMsg(`🎮 게임 시작! 참가자: ${players.map(p => playerNames[p.id]).join(', ')}`);
       setChatState(false, '라운드 시작을 기다리는 중...', '대기 중');
     }
 
@@ -1229,7 +1253,7 @@
       document.getElementById('prompt-word').textContent = `📌 ${data.prompt_word}`;
       setPhase(`라운드 ${data.round} 시작`);
 
-      const orderText = data.order.map((p, i) => `${i + 1}. ${p.nickname}`).join(' → ');
+      const orderText = data.order.map((p, i) => `${i + 1}. ${playerNames[p.id]}`).join(' → ');
       appendSystemMsg(`🎯 라운드 ${data.round} 시작! 제시어: "${data.prompt_word}"`);
       appendSystemMsg(`📋 발언 순서: ${orderText}`);
       setChatState(false, '경험 공유 순서를 기다리는 중...', '경험 공유 중');
@@ -1239,7 +1263,7 @@
       currentPhase = 'experience_sharing';
       setPhase('경험 공유');
       const isMyTurn = data.current_player_id === myPlayerId;
-      appendSystemMsg(`🎤 ${data.current_nickname}님의 경험 공유 차례 (${data.timeout}초)`);
+      appendSystemMsg(`🎤 ${playerNames[data.current_player_id]}님의 경험 공유 차례 (${data.timeout}초)`);
 
       document.querySelectorAll('.player-item').forEach(el => el.classList.remove('current-turn'));
       const playerEl = document.querySelector(`[data-pid="${data.current_player_id}"]`);
@@ -1254,13 +1278,13 @@
         setChatState(false, '당신의 차례입니다. 위의 입력창에 경험담을 작성해주세요.', '내 차례');
       } else {
         document.getElementById('panel-experience').style.display = 'none';
-        setChatState(false, `${data.current_nickname}님이 경험담을 작성 중입니다...`, '경험 공유 중');
+        setChatState(false, `${playerNames[data.current_player_id]}님이 경험담을 작성 중입니다...`, '경험 공유 중');
       }
       startTimer(data.timeout, '경험 공유');
     }
 
     function handleExperienceSubmitted(data) {
-      appendExperienceMsg(data.nickname, data.content, data.player_id);
+      appendExperienceMsg(playerNames[data.player_id], data.content, data.player_id);
       if (data.player_id === myPlayerId) {
         document.getElementById('panel-experience').style.display = 'none';
         setChatState(false, '다른 플레이어의 경험 공유를 기다리는 중...', '대기 중');
@@ -1291,18 +1315,18 @@
       const isMe = data.player_id === myPlayerId;
       const player = players.find(p => p.id === data.player_id);
       const isAI = player ? !player.is_human : false;
-      appendChatMsg(data.nickname, data.content, isMe, isAI, data.player_id);
+      appendChatMsg(playerNames[data.player_id], data.content, isMe, isAI, data.player_id);
     }
 
     function handleTypingStatus(data) {
       if (data.is_typing) {
-        typingPlayers.add(data.nickname);
+        typingPlayers.add(playerNames[data.player_id]);
       } else {
-        typingPlayers.delete(data.nickname);
+        typingPlayers.delete(playerNames[data.player_id]);
       }
       const indicator = document.getElementById('typing-indicator');
       const text = document.getElementById('typing-text');
-      
+
       const size = typingPlayers.size;
       if (size > 0) {
         indicator.style.display = 'flex';
@@ -1390,9 +1414,7 @@
           sendChat();
         }
       });
-      document.getElementById('inp-nickname').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') handleConnect();
-      });
+
     });
 
     // ────────────────────────────────────────────────────
@@ -1454,7 +1476,7 @@
       list.innerHTML = players.map(p => {
         const isMe = p.id === myPlayerId;
         const avatarClass = p.is_human ? 'human' : 'ai';
-        const avatarLetter = p.nickname.charAt(0).toUpperCase();
+        const avatarLetter = playerNames[p.id].charAt(0).toUpperCase();
         let tag = '';
         if (p.is_eliminated) tag = '<span class="player-tag elim">탈락</span>';
         else if (isMe) tag = '<span class="player-tag you">나</span>';
@@ -1462,7 +1484,7 @@
         return `
         <div class="player-item ${p.is_eliminated ? 'eliminated' : ''}" data-pid="${p.id}">
           <div class="player-avatar ${avatarClass}">${avatarLetter}</div>
-          <span class="player-name">${p.nickname}</span>
+          <span class="player-name">${playerNames[p.id]}</span>
           ${tag}
         </div>`;
       }).join('');
@@ -1489,29 +1511,29 @@
       scrollToBottom();
     }
 
-    function appendChatMsg(nickname, content, isMe, isAI, playerId) {
+    function appendChatMsg(playerName, content, isMe, isAI, playerId) {
       const msgs = document.getElementById('messages');
       const avatarClass = isAI ? 'ai' : 'human';
       const bubbleClass = isMe ? 'mine-bubble' : (isAI ? 'ai-bubble' : 'human-bubble');
-      const letter = nickname.charAt(0).toUpperCase();
+      const letter = playerName.charAt(0).toUpperCase();
       const timeStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
 
       msgs.insertAdjacentHTML('beforeend', `
       <div class="msg-chat ${isMe ? 'mine' : ''} fade-in">
         <div class="msg-avatar ${avatarClass}">${letter}</div>
         <div class="msg-body">
-          <div class="msg-name">${nickname} · ${timeStr}</div>
+          <div class="msg-name">${playerName} · ${timeStr}</div>
           <div class="msg-bubble ${bubbleClass}">${escHtml(content)}</div>
         </div>
       </div>`);
       scrollToBottom();
     }
 
-    function appendExperienceMsg(nickname, content, playerId) {
+    function appendExperienceMsg(playerName, content, playerId) {
       const msgs = document.getElementById('messages');
       msgs.insertAdjacentHTML('beforeend', `
       <div class="msg-experience fade-in">
-        <div class="msg-exp-header">🗣 ${escHtml(nickname)}의 경험담</div>
+        <div class="msg-exp-header">🗣 ${escHtml(playerName)}의 경험담</div>
         <div class="msg-exp-content">${escHtml(content)}</div>
       </div>`);
       scrollToBottom();
@@ -1550,7 +1572,7 @@
 
       const playerRows = (data.players || []).map(p =>
         `<span style="color:${p.is_eliminated ? 'var(--text-muted)' : (p.is_human ? 'var(--human-color)' : 'var(--ai-color)')}">
-        ${p.nickname}${p.is_eliminated ? '(탈락)' : ''}${!p.is_human ? ' 🤖' : ''}
+        ${playerNames[p.id]}${p.is_eliminated ? '(탈락)' : ''}${!p.is_human ? ' 🤖' : ''}
       </span>`
       ).join(' / ');
 
@@ -1570,7 +1592,7 @@
       const val = document.getElementById('timer-val');
       const fill = document.getElementById('timer-fill');
       const labelEl = document.getElementById('timer-label');
-      
+
       if (labelEl) labelEl.textContent = label + ' 타이머';
       wrap.style.display = '';
       timerTotal = duration;

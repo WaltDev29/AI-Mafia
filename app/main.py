@@ -59,7 +59,7 @@ async def server_status():
             "phase": game.phase,
             "round": game.round_number,
             "alive_players": [
-                {"id": p.id, "nickname": p.nickname, "is_human": p.is_human}
+                {"id": p.id, "is_human": p.is_human}
                 for p in game.alive_players
             ],
         })
@@ -67,7 +67,7 @@ async def server_status():
         "active_games": games,
         "group_waiting_count": game_manager.status["group_waiting"],
         "group_waiting_players": [
-            {"id": p.id, "nickname": p.nickname}
+            {"id": p.id}
             for p in game_manager.group_waiting_room
         ],
     })
@@ -81,7 +81,6 @@ async def server_status():
 async def websocket_endpoint(
     ws: WebSocket,
     mode: str = Query(..., description="게임 모드: solo | group"),
-    nickname: str = Query(..., description="닉네임"),
 ):
     """
     클라이언트 접속 처리.
@@ -97,17 +96,10 @@ async def websocket_endpoint(
         await ws.close()
         return
 
-    # 닉네임 유효성 검사
-    nickname = nickname.strip()
-    if not nickname or len(nickname) > 20:
-        await ws.accept()
-        await ws.send_json({"type": "error", "data": {"detail": "닉네임은 1~20자 사이여야 합니다."}})
-        await ws.close()
-        return
-
     # 플레이어 생성 및 연결
-    player = Player(nickname=nickname, is_human=True, ws=ws)
+    player = Player(is_human=True, ws=ws)
     await connection_manager.connect(player.id, ws)
+    await ws.send_json({"type": "connected", "data": {"player_id": player.id}})
 
     game = None
     game_task = None
@@ -130,7 +122,7 @@ async def websocket_endpoint(
         await _message_loop(player, game)
 
     except WebSocketDisconnect:
-        logger.info(f"[main] 연결 끊김: {player.nickname} ({player.id})")
+        logger.info(f"[main] 연결 끊김: ({player.id})")
         await _handle_disconnect(player, game)
 
     finally:
@@ -146,7 +138,7 @@ async def _handle_solo_join(player: Player):
     ai_players = create_ai_players(settings.SOLO_AI_COUNT)
     all_players = [player] + ai_players
     game = game_manager.create_game(all_players, GameMode.SOLO)
-    logger.info(f"[main] 솔로 게임 생성: {player.nickname} vs AI {settings.SOLO_AI_COUNT}명")
+    logger.info(f"[main] 솔로 게임 생성: vs AI {settings.SOLO_AI_COUNT}명")
     return game
 
 
@@ -178,7 +170,7 @@ async def _handle_group_join(player: Player):
     game = game_manager.create_game(all_players, GameMode.GROUP)
     logger.info(
         f"[main] 단체 게임 생성: "
-        f"인간 {[p.nickname for p in ready_players]} vs AI {settings.GROUP_AI_COUNT}명"
+        f"인간 {len(ready_players)}명 vs AI {settings.GROUP_AI_COUNT}명"
     )
     return game
 
@@ -218,7 +210,6 @@ async def _message_loop(player: Player, game) -> None:
                     type=WsMessageType.TYPING_STATUS,
                     data={
                         "player_id": player.id,
-                        "nickname": player.nickname,
                         "is_typing": is_typing,
                     },
                 ),
@@ -255,7 +246,7 @@ async def _handle_experience_submit(player: Player, game, data: dict) -> None:
         content = "\n".join(lines[:2])
 
     game.experience_submissions[player.id] = content
-    logger.info(f"[main] 경험담 제출: {player.nickname}")
+    logger.info(f"[main] 경험담 제출: {player.id}")
 
     # 제출 완료를 게임 전체에 브로드캐스트
     await connection_manager.broadcast_to_game(
@@ -264,7 +255,6 @@ async def _handle_experience_submit(player: Player, game, data: dict) -> None:
             type=WsMessageType.EXPERIENCE_SUBMITTED,
             data={
                 "player_id": player.id,
-                "nickname": player.nickname,
                 "content": content,
             },
         ),
@@ -293,7 +283,6 @@ async def _handle_chat(player: Player, game, data: dict) -> None:
 
     msg = ChatMessage(
         player_id=player.id,
-        nickname=player.nickname,
         content=content,
         timestamp=time.time(),
     )
@@ -305,7 +294,6 @@ async def _handle_chat(player: Player, game, data: dict) -> None:
             type=WsMessageType.CHAT_MESSAGE,
             data={
                 "player_id": player.id,
-                "nickname": player.nickname,
                 "content": content,
                 "timestamp": msg.timestamp,
             },
@@ -332,7 +320,7 @@ async def _handle_disconnect(player: Player, game) -> None:
     )
     if player_in_game and not player_in_game.is_eliminated:
         player_in_game.is_eliminated = True
-        logger.info(f"[main] 연결 끊김으로 탈락: {player.nickname}")
+        logger.info(f"[main] 연결 끊김으로 탈락: {player.id}")
 
         await connection_manager.broadcast_to_game(
             game,
@@ -340,7 +328,6 @@ async def _handle_disconnect(player: Player, game) -> None:
                 type=WsMessageType.PLAYER_ELIMINATED,
                 data={
                     "player_id": player.id,
-                    "nickname": player.nickname,
                     "reason": "연결 끊김",
                 },
             ),
