@@ -845,6 +845,60 @@
       .conn-row #inp-url {
         display: none;
       }
+    /* 대기방 모달 */
+    .waiting-modal {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(10, 11, 15, 0.85);
+      backdrop-filter: blur(5px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      color: var(--text-primary);
+    }
+    .waiting-modal-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 40px;
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .waiting-spinner-large {
+      width: 50px; height: 50px;
+      border: 4px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px auto;
+    }
+    
+    /* 타이핑 인디케이터 */
+    .typing-indicator {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      padding: 4px 10px;
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .typing-dots {
+      display: flex; gap: 3px;
+    }
+    .typing-dot {
+      width: 4px; height: 4px;
+      background: var(--text-secondary);
+      border-radius: 50%;
+      animation: typingBounce 1.4s infinite ease-in-out both;
+    }
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes typingBounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
     }
   </style>
 </head>
@@ -893,7 +947,7 @@
           <div class="prompt-word" id="prompt-word" style="display:none"></div>
           <div class="timer-bar-wrap" id="timer-wrap" style="display:none">
             <div class="timer-text">
-              <span>자유 대화 타이머</span>
+              <span id="timer-label">자유 대화 타이머</span>
               <span id="timer-val">—</span>
             </div>
             <div class="timer-bar">
@@ -936,6 +990,13 @@
 
       <!-- 입력 영역 -->
       <div class="input-area">
+        
+        <!-- 타이핑 인디케이터 -->
+        <div id="typing-indicator" class="typing-indicator" style="display:none">
+          <div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+          <span id="typing-text">입력 중...</span>
+        </div>
+
         <!-- 경험담 특별 패널 (차례일 때만 표시) -->
         <div id="panel-experience" class="special-panel">
           <div class="phase-hint" style="margin-bottom:8px">
@@ -964,6 +1025,15 @@
 
   </div>
 
+  <!-- 대기방 모달 -->
+  <div id="waiting-modal" class="waiting-modal" style="display:none">
+    <div class="waiting-modal-content">
+      <div class="waiting-spinner-large"></div>
+      <h2 style="margin-bottom: 10px;">단체 게임 대기 중</h2>
+      <div id="waiting-modal-text" style="color: var(--text-secondary);">인원을 모집하고 있습니다...</div>
+    </div>
+  </div>
+
   <script>
     // ────────────────────────────────────────────────────
     // 상태
@@ -976,6 +1046,8 @@
     let timerInterval = null;
     let timerTotal = 0;
     let timerRemaining = 0;
+    let typingPlayers = new Set();
+    let typingTimeout = null;
 
     const PHASE_LABELS = {
       waiting: '대기 중',
@@ -1066,12 +1138,13 @@
       switch (type) {
 
         case 'game_start':
+          document.getElementById('waiting-modal').style.display = 'none';
           handleGameStart(data);
           break;
 
         case 'waiting_room':
-          document.getElementById('waiting-text').textContent = data.message || '대기 중...';
-          appendSystemMsg(`⏳ ${data.message || '대기 중'}`);
+          document.getElementById('waiting-modal').style.display = 'flex';
+          document.getElementById('waiting-modal-text').textContent = data.message || '대기 중...';
           break;
 
         case 'round_start':
@@ -1100,6 +1173,10 @@
 
         case 'chat_message':
           handleChatMessage(data);
+          break;
+
+        case 'typing_status':
+          handleTypingStatus(data);
           break;
 
         case 'judging_start':
@@ -1160,7 +1237,7 @@
       currentPhase = 'experience_sharing';
       setPhase('경험 공유');
       const isMyTurn = data.current_player_id === myPlayerId;
-      appendSystemMsg(`🎤 ${data.nickname}님의 경험 공유 차례 (${data.timeout}초)`);
+      appendSystemMsg(`🎤 ${data.current_nickname}님의 경험 공유 차례 (${data.timeout}초)`);
 
       document.querySelectorAll('.player-item').forEach(el => el.classList.remove('current-turn'));
       const playerEl = document.querySelector(`[data-pid="${data.current_player_id}"]`);
@@ -1175,8 +1252,9 @@
         setChatState(false, '당신의 차례입니다. 위의 입력창에 경험담을 작성해주세요.', '내 차례');
       } else {
         document.getElementById('panel-experience').style.display = 'none';
-        setChatState(false, `${data.nickname}님이 경험담을 작성 중입니다...`, '경험 공유 중');
+        setChatState(false, `${data.current_nickname}님이 경험담을 작성 중입니다...`, '경험 공유 중');
       }
+      startTimer(data.timeout, '경험 공유');
     }
 
     function handleExperienceSubmitted(data) {
@@ -1197,7 +1275,7 @@
       document.getElementById('panel-experience').style.display = 'none';
       setChatState(true, '자유 대화 중입니다. 자연스럽게 대화에 참여하세요.', '자유 대화');
       appendSystemMsg(`💬 자유 대화 시작! ${data.duration}초 동안 자유롭게 대화하세요.`);
-      startTimer(data.duration);
+      startTimer(data.duration, '자유 대화');
     }
 
     function handleFreeChatEnd() {
@@ -1212,6 +1290,31 @@
       const player = players.find(p => p.id === data.player_id);
       const isAI = player ? !player.is_human : false;
       appendChatMsg(data.nickname, data.content, isMe, isAI, data.player_id);
+    }
+
+    function handleTypingStatus(data) {
+      if (data.is_typing) {
+        typingPlayers.add(data.nickname);
+      } else {
+        typingPlayers.delete(data.nickname);
+      }
+      const indicator = document.getElementById('typing-indicator');
+      const text = document.getElementById('typing-text');
+      
+      const size = typingPlayers.size;
+      if (size > 0) {
+        indicator.style.display = 'flex';
+        const arr = Array.from(typingPlayers);
+        if (size === 1) {
+          text.textContent = `${arr[0]}님이 입력 중...`;
+        } else if (size === 2) {
+          text.textContent = `${arr[0]}, ${arr[1]}님이 입력 중...`;
+        } else {
+          text.textContent = `${arr[0]}님 외 ${size - 1}명이 입력 중...`;
+        }
+      } else {
+        indicator.style.display = 'none';
+      }
     }
 
     function handleJudgeResult(data) {
@@ -1242,6 +1345,7 @@
       ws.send(JSON.stringify({ type: 'send_chat', data: { content } }));
       input.value = '';
       input.style.height = 'auto';
+      sendTypingStatus(false);
     }
 
     function sendExperience() {
@@ -1250,7 +1354,31 @@
       if (!content || !ws) return;
       ws.send(JSON.stringify({ type: 'submit_experience', data: { content } }));
       input.value = '';
+      sendTypingStatus(false);
     }
+
+    function sendTypingStatus(isTyping) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'typing_status', data: { is_typing: isTyping } }));
+      }
+    }
+
+    // 입력 중 상태 전송 바인딩
+    document.addEventListener('DOMContentLoaded', () => {
+      ['chat-input', 'exp-input'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('input', () => {
+          sendTypingStatus(true);
+          clearTimeout(typingTimeout);
+          typingTimeout = setTimeout(() => sendTypingStatus(false), 2000);
+        });
+        el.addEventListener('blur', () => {
+          clearTimeout(typingTimeout);
+          sendTypingStatus(false);
+        });
+      });
+    });
 
     // Enter 키 처리
     document.addEventListener('DOMContentLoaded', () => {
@@ -1435,10 +1563,13 @@
     }
 
     // ── 타이머 ───────────────────────────────────
-    function startTimer(duration) {
+    function startTimer(duration, label) {
       const wrap = document.getElementById('timer-wrap');
       const val = document.getElementById('timer-val');
       const fill = document.getElementById('timer-fill');
+      const labelEl = document.getElementById('timer-label');
+      
+      if (labelEl) labelEl.textContent = label + ' 타이머';
       wrap.style.display = '';
       timerTotal = duration;
       timerRemaining = duration;

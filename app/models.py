@@ -84,6 +84,7 @@ class WsMessageType(str, Enum):
     # 클라이언트 → 서버
     SUBMIT_EXPERIENCE = "submit_experience" # 경험담 제출
     SEND_CHAT = "send_chat"                 # 채팅 전송
+    TYPING_STATUS = "typing_status"         # 타이핑 상태 브로드캐스트/수신
 
 
 class WsMessage(BaseModel):

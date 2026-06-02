@@ -55,7 +55,7 @@ class AIPlayer:
             "너는 실제로 AI지만, 다른 사람들이 너를 의심하지 않도록 완벽하게 'AI 흉내를 내는 참가자'처럼 굴어야 해. "
             "특히 다른 참가자들이 말한 '제시어 경험담'을 보고, 너무 감정적이거나 인간미가 넘치거나 어설픈 부분을 "
             "날카롭게 꼬투리 잡아 그 사람을 '진짜 사람(인간)'으로 몰아가. 의심하고 추궁해. "
-            "반드시 짧은 한 문장으로, 완벽한 표준어 대신 자연스러운 구어체(가끔 오타나 줄임말)를 써. "
+            "반드시 10자~20자 이내의 아주 짧은 한 문장으로 대답해. 완벽한 표준어 대신 자연스러운 구어체(가끔 오타나 줄임말)를 써. "
             "절대로 자신이 진짜 인간이라고 인정하지 마."
         )
 
@@ -107,11 +107,11 @@ class AIPlayer:
                             f"[현재 자유 대화 내용]\n{history_text}\n\n"
                             "위 경험담과 대화 맥락을 보고 자연스럽게 끼어들어. "
                             "감정이 너무 풍부하거나 어색한 경험담을 쓴 사람을 인간(사람)으로 몰아가거나, 내 성격을 드러내며 반응해. "
-                            "반드시 짧은 1문장으로 대답해."
+                            "반드시 10~20자 이내의 아주 짧은 1문장으로 대답해."
                         ),
                     },
                 ],
-                max_tokens=100,
+                max_tokens=40,
                 temperature=0.95,
             )
             return response.choices[0].message.content.strip()
@@ -140,11 +140,11 @@ class AIPlayer:
                             f"[최근 대화]\n{recent_context or '(대화 없음)'}\n\n"
                             "대화가 잠시 멈췄어. 자연스럽게 먼저 말을 꺼내봐. "
                             "다른 사람의 경험담이 너무 인간답다고 의심하거나, 침묵을 깨는 말을 해봐. "
-                            "반드시 짧은 1문장으로 대답해."
+                            "반드시 10~20자 이내의 아주 짧은 1문장으로 대답해."
                         ),
                     },
                 ],
-                max_tokens=80,
+                max_tokens=40,
                 temperature=1.0,
             )
             return response.choices[0].message.content.strip()
@@ -200,9 +200,9 @@ class LLMJudge:
             f"[경험 공유]\n{experience_text}\n\n"
             f"[자유 대화]\n{chat_text}\n\n"
             "위 내용을 분석해서, 가장 인간다운 참가자 1명을 골라줘. "
-            "반드시 아래 JSON 형식으로만 답해:\n"
+            "반드시 아래 JSON 형식으로만 답해. id는 반드시 생존 참가자 목록에 있는 영문/숫자 혼합된 고유 id(UUID)를 그대로 써야 해:\n"
             "{\n"
-            '  "eliminated_player_id": "<id>",\n'
+            '  "eliminated_player_id": "<반드시 제공된 고유 id>",\n'
             '  "eliminated_nickname": "<닉네임>",\n'
             '  "human_probability": <0~100 정수>,\n'
             '  "reason": "<판단 이유 2~4문장>"\n'
@@ -225,12 +225,20 @@ class LLMJudge:
 
             # 반환된 id가 실제 생존 플레이어인지 검증
             valid_ids = {p.id for p in alive_players}
-            if data.get("eliminated_player_id") not in valid_ids:
-                logger.warning(f"[LLMJudge] 판정 결과의 id가 유효하지 않음: {data}")
-                return None
+            eliminated_id = data.get("eliminated_player_id")
+            
+            if eliminated_id not in valid_ids:
+                # LLM이 id 대신 닉네임을 반환했을 경우를 대비한 폴백
+                fallback_player = next((p for p in alive_players if p.nickname == data.get("eliminated_nickname")), None)
+                if fallback_player:
+                    eliminated_id = fallback_player.id
+                    logger.info(f"[LLMJudge] id 매칭 실패하여 닉네임으로 폴백 처리: {fallback_player.nickname}")
+                else:
+                    logger.warning(f"[LLMJudge] 판정 결과의 id/닉네임이 모두 유효하지 않음: {data}")
+                    return None
 
             return JudgeResult(
-                eliminated_player_id=data["eliminated_player_id"],
+                eliminated_player_id=eliminated_id,
                 eliminated_nickname=data["eliminated_nickname"],
                 human_probability=int(data["human_probability"]),
                 reason=data["reason"],

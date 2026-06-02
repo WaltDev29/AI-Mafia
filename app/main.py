@@ -200,6 +200,21 @@ async def _message_loop(player: Player, game) -> None:
         elif msg_type == WsMessageType.SEND_CHAT:
             await _handle_chat(player, game, data)
 
+        elif msg_type == WsMessageType.TYPING_STATUS:
+            is_typing = data.get("data", {}).get("is_typing", False)
+            await connection_manager.broadcast_to_game(
+                game,
+                WsMessage(
+                    type=WsMessageType.TYPING_STATUS,
+                    data={
+                        "player_id": player.id,
+                        "nickname": player.nickname,
+                        "is_typing": is_typing,
+                    },
+                ),
+                exclude_player_id=player.id,
+            )
+
         else:
             logger.warning(f"[main] 알 수 없는 메시지 타입: {msg_type}")
 
@@ -294,6 +309,9 @@ async def _handle_disconnect(player: Player, game) -> None:
     - 대기 중: 대기방에서 제거
     - 게임 중: 탈락 처리 후 게임 계속
     """
+    if game is None:
+        game = game_manager.find_game_by_player(player.id)
+
     if game is None:
         # 대기방 제거
         game_manager.remove_from_waiting(player.id)

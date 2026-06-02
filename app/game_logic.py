@@ -66,77 +66,84 @@ async def start_game(game: GameState) -> None:
     게임의 메인 루프를 실행한다.
     각 라운드를 순차적으로 진행하고, 종료 조건에 도달하면 게임을 종료한다.
     """
-    # AI 플레이어 에이전트 초기화 (게임당 독립 인스턴스)
-    ai_agents: dict[str, AIPlayer] = {
-        p.id: AIPlayer(p) for p in game.players if not p.is_human
-    }
-    judge = LLMJudge()
+    try:
+        # AI 플레이어 에이전트 초기화 (게임당 독립 인스턴스)
+        ai_agents: dict[str, AIPlayer] = {
+            p.id: AIPlayer(p) for p in game.players if not p.is_human
+        }
+        judge = LLMJudge()
 
-    # 게임 시작 알림
-    await connection_manager.broadcast_to_game(
-        game,
-        WsMessage(
-            type=WsMessageType.GAME_START,
-            data=_build_player_list_payload(game),
-        ),
-    )
-
-    used_words: set[str] = set()
-
-    while True:
-        # ── 종료 조건 체크 ──────────────────────────────────────────
-        result = _check_game_result(game)
-        if result is not None:
-            await _handle_game_over(game, result)
-            return
-
-        # ── ROUND_START ──────────────────────────────────────────────
-        game.round_number += 1
-        game.phase = GamePhase.ROUND_START
-        game.experience_submissions = {}
-        game.chat_history = []
-
-        # 제시어 선택 (중복 방지)
-        available = [w for w in PROMPT_WORDS if w not in used_words]
-        if not available:
-            available = PROMPT_WORDS  # 전부 소진됐을 경우 재사용
-            used_words.clear()
-        prompt_word = random.choice(available)
-        used_words.add(prompt_word)
-        game.current_prompt_word = prompt_word
-
-        # 생존 플레이어 순서 섞기
-        alive = game.alive_players
-        random.shuffle(alive)
-        game.experience_order = [p.id for p in alive]
-        game.experience_index = 0
-
+        # 게임 시작 알림
         await connection_manager.broadcast_to_game(
             game,
             WsMessage(
-                type=WsMessageType.ROUND_START,
-                data={
-                    "round": game.round_number,
-                    "prompt_word": prompt_word,
-                    "order": [
-                        {"id": p.id, "nickname": p.nickname}
-                        for p in alive
-                    ],
-                },
+                type=WsMessageType.GAME_START,
+                data=_build_player_list_payload(game),
             ),
         )
 
-        # ── EXPERIENCE_SHARING ────────────────────────────────────────
-        game.phase = GamePhase.EXPERIENCE_SHARING
-        await _run_experience_sharing(game, ai_agents)
+        used_words: set[str] = set()
 
-        # ── FREE_CHAT ──────────────────────────────────────────────────
-        game.phase = GamePhase.FREE_CHAT
-        await _run_free_chat(game, ai_agents)
+        while True:
+            # ── 종료 조건 체크 ──────────────────────────────────────────
+            result = _check_game_result(game)
+            if result is not None:
+                await _handle_game_over(game, result)
+                return
 
-        # ── JUDGING ────────────────────────────────────────────────────
-        game.phase = GamePhase.JUDGING
-        await _run_judging(game, judge)
+            # ── ROUND_START ──────────────────────────────────────────────
+            game.round_number += 1
+            game.phase = GamePhase.ROUND_START
+            game.experience_submissions = {}
+            game.chat_history = []
+
+            # 제시어 선택 (중복 방지)
+            available = [w for w in PROMPT_WORDS if w not in used_words]
+            if not available:
+                available = PROMPT_WORDS  # 전부 소진됐을 경우 재사용
+                used_words.clear()
+            prompt_word = random.choice(available)
+            used_words.add(prompt_word)
+            game.current_prompt_word = prompt_word
+
+            # 생존 플레이어 순서 섞기
+            alive = game.alive_players
+            random.shuffle(alive)
+            game.experience_order = [p.id for p in alive]
+            game.experience_index = 0
+
+            await connection_manager.broadcast_to_game(
+                game,
+                WsMessage(
+                    type=WsMessageType.ROUND_START,
+                    data={
+                        "round": game.round_number,
+                        "prompt_word": prompt_word,
+                        "order": [
+                            {"id": p.id, "nickname": p.nickname}
+                            for p in alive
+                        ],
+                    },
+                ),
+            )
+
+            # ── EXPERIENCE_SHARING ────────────────────────────────────────
+            game.phase = GamePhase.EXPERIENCE_SHARING
+            await _run_experience_sharing(game, ai_agents)
+
+            # ── FREE_CHAT ──────────────────────────────────────────────────
+            game.phase = GamePhase.FREE_CHAT
+            await _run_free_chat(game, ai_agents)
+
+            # ── JUDGING ────────────────────────────────────────────────────
+            game.phase = GamePhase.JUDGING
+            await _run_judging(game, judge)
+
+    except Exception as e:
+        logger.error(f"[game_logic] 게임 강제 종료 (game_id={game.game_id}): {e}", exc_info=True)
+    finally:
+        # 게임 종료 또는 에러 발생 시 메모리 누수(좀비 게임) 방지
+        game_manager.remove_game(game.game_id)
 
 
 # ────────────────────────────────────────────────────────────────────
@@ -170,10 +177,12 @@ async def _run_experience_sharing(
 
         if not player.is_human:
             # AI는 즉시 경험담 생성 (약간의 자연스러운 딜레이)
+            await _broadcast_typing(game, pid, player.nickname, True)
             await asyncio.sleep(random.uniform(5.0, 8.0))
             experience = await ai_agents[pid].generate_experience(
                 game.current_prompt_word
             )
+            await _broadcast_typing(game, pid, player.nickname, False)
             game.experience_submissions[pid] = experience
             await connection_manager.broadcast_to_game(
                 game,
@@ -216,10 +225,27 @@ async def _wait_for_experience(
     """
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
+        if not game.alive_humans:
+            return False  # 모든 인간이 나가면 조기 탈출
         if player_id in game.experience_submissions:
             return True
         await asyncio.sleep(0.2)
     return False
+
+
+async def _broadcast_typing(game: GameState, player_id: str, nickname: str, is_typing: bool) -> None:
+    """AI 플레이어의 타이핑 상태를 브로드캐스트한다."""
+    await connection_manager.broadcast_to_game(
+        game,
+        WsMessage(
+            type=WsMessageType.TYPING_STATUS,
+            data={
+                "player_id": player_id,
+                "nickname": nickname,
+                "is_typing": is_typing,
+            },
+        ),
+    )
 
 
 async def _run_free_chat(
@@ -246,8 +272,12 @@ async def _run_free_chat(
         if p.id in ai_agents
     ]
 
-    # 자유 대화 타이머
-    await asyncio.sleep(settings.FREE_CHAT_DURATION)
+    # 자유 대화 타이머 (Fail-safe: 인간이 모두 나가면 조기 종료)
+    deadline = time.monotonic() + settings.FREE_CHAT_DURATION
+    while time.monotonic() < deadline:
+        if not game.alive_humans:
+            break
+        await asyncio.sleep(1.0)
 
     # 타이머 종료 → AI 채팅 Task 취소
     for task in ai_tasks:
@@ -286,10 +316,9 @@ async def _ai_chat_loop(
         current_count = len(game.chat_history)
 
         if current_count > last_seen_count:
-            # 새 메시지 감지 → 반응형 딜레이 후 응답
+            # 새 메시지 감지
             last_seen_count = current_count
             last_chat_time = now
-            await asyncio.sleep(ai.reaction_delay)
 
             # 딜레이 중 게임 상태 재확인
             if game.phase != GamePhase.FREE_CHAT or ai.player.is_eliminated:
@@ -301,8 +330,11 @@ async def _ai_chat_loop(
                 and game.chat_history[-1].player_id == ai.player.id
             ):
                 continue
-
+            
+            await _broadcast_typing(game, ai.player.id, ai.player.nickname, True)
+            await asyncio.sleep(ai.reaction_delay)
             content = await ai.generate_chat_response(game.chat_history, experience_text)
+            await _broadcast_typing(game, ai.player.id, ai.player.nickname, False)
             await _broadcast_ai_chat(game, ai.player, content)
 
         elif now - last_chat_time > AIPlayer._SPONTANEOUS_IDLE_SEC:
@@ -313,7 +345,11 @@ async def _ai_chat_loop(
                     game.chat_history
                     and game.chat_history[-1].player_id == ai.player.id
                 ):
+                    await _broadcast_typing(game, ai.player.id, ai.player.nickname, True)
+                    # 선제 발화 전 짧은 타이핑 모션
+                    await asyncio.sleep(random.uniform(2.0, 4.0))
                     content = await ai.generate_spontaneous_message(game.chat_history, experience_text)
+                    await _broadcast_typing(game, ai.player.id, ai.player.nickname, False)
                     await _broadcast_ai_chat(game, ai.player, content)
                 last_chat_time = now  # 선제 발화 후 타이머 리셋
 
