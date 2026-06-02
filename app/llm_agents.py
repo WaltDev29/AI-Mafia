@@ -27,9 +27,8 @@ class AIPlayer:
     """
 
     # 자유 대화 전략 상수
-    _REACTION_DELAY_MIN = 5   # 반응형 최소 딜레이(초)
-    _REACTION_DELAY_MAX = 10   # 반응형 최대 딜레이(초)
-    _SPONTANEOUS_IDLE_SEC = 30  # 선제 발화 트리거: 이 초 이상 침묵
+    _CHAT_INTERVAL_MIN = 5   # 채팅 발화 최소 딜레이(초)
+    _CHAT_INTERVAL_MAX = 10  # 채팅 발화 최대 딜레이(초)
 
     def __init__(self, player: Player):
         self.player = player
@@ -119,43 +118,10 @@ class AIPlayer:
             logger.error(f"[AIPlayer] 반응형 채팅 생성 실패 (player={self.player.id}): {e}")
             return "ㅋㅋ 맞아요"
 
-    async def generate_spontaneous_message(self, chat_history: list[ChatMessage], experience_text: str) -> str:
-        """
-        대화가 멈췄을 때 선제적으로 발화할 메시지를 생성한다.
-        """
-        recent_context = ""
-        if chat_history:
-            last_few = chat_history[-5:] if len(chat_history) >= 5 else chat_history
-            recent_context = "\n".join(f"{m.nickname}: {m.content}" for m in last_few)
-
-        try:
-            response = await _client.chat.completions.create(
-                model=_MODEL,
-                messages=[
-                    {"role": "system", "content": self._system_prompt},
-                    {
-                        "role": "user",
-                        "content": (
-                            f"[참가자들의 경험담]\n{experience_text}\n\n"
-                            f"[최근 대화]\n{recent_context or '(대화 없음)'}\n\n"
-                            "대화가 잠시 멈췄어. 자연스럽게 먼저 말을 꺼내봐. "
-                            "다른 사람의 경험담이 너무 인간답다고 의심하거나, 침묵을 깨는 말을 해봐. "
-                            "반드시 10~20자 이내의 아주 짧은 1문장으로 대답해."
-                        ),
-                    },
-                ],
-                max_tokens=40,
-                temperature=1.0,
-            )
-            return response.choices[0].message.content.strip()
-        except Exception as e:
-            logger.error(f"[AIPlayer] 선제 발화 생성 실패 (player={self.player.id}): {e}")
-            return "근데 다들 조용하네요?"
-
     @property
-    def reaction_delay(self) -> float:
-        """반응형 채팅 시 랜덤 딜레이(초)를 반환한다."""
-        return random.uniform(self._REACTION_DELAY_MIN, self._REACTION_DELAY_MAX)
+    def chat_interval(self) -> float:
+        """랜덤한 채팅 딜레이(초)를 반환한다."""
+        return random.uniform(self._CHAT_INTERVAL_MIN, self._CHAT_INTERVAL_MAX)
 
 
 class LLMJudge:

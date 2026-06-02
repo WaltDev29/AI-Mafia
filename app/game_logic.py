@@ -294,16 +294,10 @@ async def _ai_chat_loop(
     game: GameState, ai: AIPlayer, duration: int
 ) -> None:
     """
-    하이브리드 AI 채팅 전략 루프.
-    - 반응형: 마지막 메시지 이후 일정 딜레이 뒤 응답
-    - 선제형: 30초 이상 침묵 시 선제 발화
-    - 연속 발화 방지: 직전 메시지가 본인이면 선제 발화 생략
+    타이머 기반 AI 채팅 전략 루프.
+    - 반응형/선제형 구분 없이 일정 주기(5~10초)마다 무작위로 발화
+    - 연속 발화 방지 (직전 메시지가 본인이면 생략)
     """
-    start = time.monotonic()
-    last_seen_count = 0       # 마지막으로 처리한 채팅 수
-    last_chat_time = start    # 마지막 메시지 수신 시각
-    stop_spontaneous_at = start + duration - 30  # 종료 30초 전부터 선제 발화 금지
-
     # 경험담 정보를 문자열로 구성
     experience_lines = []
     for p in game.alive_players:
@@ -312,48 +306,35 @@ async def _ai_chat_loop(
     experience_text = "\n".join(experience_lines)
 
     while True:
-        now = time.monotonic()
-        current_count = len(game.chat_history)
+        # 랜덤 딜레이 (5~10초)
+        delay = ai.chat_interval
+        await asyncio.sleep(delay)
 
-        if current_count > last_seen_count:
-            # 새 메시지 감지
-            last_seen_count = current_count
-            last_chat_time = now
+        # 딜레이 후 게임 상태 및 생존 여부 재확인
+        if game.phase != GamePhase.FREE_CHAT or ai.player.is_eliminated:
+            return
 
-            # 딜레이 중 게임 상태 재확인
-            if game.phase != GamePhase.FREE_CHAT or ai.player.is_eliminated:
-                return
-
-            # 직전 메시지가 본인이면 반응 생략 (연속 발화 방지)
-            if (
-                game.chat_history
-                and game.chat_history[-1].player_id == ai.player.id
-            ):
-                continue
+        # 직전 메시지가 본인이면 발화 생략 (연속 발화 방지)
+        if (
+            game.chat_history
+            and game.chat_history[-1].player_id == ai.player.id
+        ):
+            continue
             
-            await _broadcast_typing(game, ai.player.id, ai.player.nickname, True)
-            await asyncio.sleep(ai.reaction_delay)
-            content = await ai.generate_chat_response(game.chat_history, experience_text)
-            await _broadcast_typing(game, ai.player.id, ai.player.nickname, False)
-            await _broadcast_ai_chat(game, ai.player, content)
-
-        elif now - last_chat_time > AIPlayer._SPONTANEOUS_IDLE_SEC:
-            # 30초 이상 침묵 → 선제 발화 (종료 30초 전 이후에는 생략)
-            if now < stop_spontaneous_at:
-                # 직전 메시지가 본인이면 생략
-                if not (
-                    game.chat_history
-                    and game.chat_history[-1].player_id == ai.player.id
-                ):
-                    await _broadcast_typing(game, ai.player.id, ai.player.nickname, True)
-                    # 선제 발화 전 짧은 타이핑 모션
-                    await asyncio.sleep(random.uniform(2.0, 4.0))
-                    content = await ai.generate_spontaneous_message(game.chat_history, experience_text)
-                    await _broadcast_typing(game, ai.player.id, ai.player.nickname, False)
-                    await _broadcast_ai_chat(game, ai.player, content)
-                last_chat_time = now  # 선제 발화 후 타이머 리셋
-
-        await asyncio.sleep(0.5)
+        await _broadcast_typing(game, ai.player.id, ai.player.nickname, True)
+        
+        # 실제 타이핑 시간 느낌을 위해 약간의 추가 대기
+        await asyncio.sleep(random.uniform(1.5, 3.0))
+        
+        content = await ai.generate_chat_response(game.chat_history, experience_text)
+        
+        await _broadcast_typing(game, ai.player.id, ai.player.nickname, False)
+        
+        # 찰나의 순간에 게임이 넘어갔을 수 있으므로 재확인
+        if game.phase != GamePhase.FREE_CHAT or ai.player.is_eliminated:
+            return
+            
+        await _broadcast_ai_chat(game, ai.player, content)
 
 
 async def _broadcast_ai_chat(
