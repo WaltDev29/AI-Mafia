@@ -86,7 +86,7 @@ sequenceDiagram
 |---|---|---|
 | `connected` | `{ "player_id": "..." }` | 연결 직후 서버가 클라이언트에게 부여한 본인의 ID 전달 |
 | `waiting_room` | `{ "waiting_count": 2, "required": 4, "message": "..." }` | 그룹 모드 대기방 상태 |
-| `game_start` | `{ "game_id": "...", "mode": "solo", "players": [ { "id": "...", "is_human": true, "is_eliminated": false } ] }` | 게임 시작 및 참가자 전체 정보 |
+| `game_start` | `{ "game_id": "...", "mode": "solo", "players": [ { "id": "...", "nickname": "Player 1", "is_human": true, "is_eliminated": false } ] }` | 게임 시작 및 참가자 전체 정보 |
 | `game_over` | `{ "result": "human_win"\|"ai_win", "message": "...", "players": [...] }` | 게임 종료 및 최종 승패 |
 | `error` | `{ "detail": "에러 메시지" }` | 규칙 위반 또는 서버 에러 발생 시 |
 | `player_eliminated`| `{ "player_id": "...", "reason": "연결 끊김" }` | 접속 종료 등으로 인한 비정상 탈락 발생 시 |
@@ -100,7 +100,7 @@ sequenceDiagram
 | `experience_timeout`| `{ "player_id": "..." }` | 타임아웃으로 제출을 패스함 |
 | `free_chat_start` | `{ "duration": 120 }` | 자유 대화 시작. 이 때부터 채팅 전송 가능 |
 | `free_chat_end` | `{}` (빈 객체) | 자유 대화 종료 알림 |
-| `chat_message` | `{ "player_id": "...", "content": "내용", "timestamp": 161... }` | 누군가 채팅을 보냄 (브로드캐스트) |
+| `chat_message` | `{ "player_id": "...", "nickname": "Player 1", "content": "내용", "timestamp": 161... }` | 누군가 채팅을 보냄 (브로드캐스트) |
 | `typing_status` | `{ "player_id": "...", "is_typing": true }` | 누군가 타이핑을 치고 있음 |
 
 ### 4.3. 판정 및 투표 이벤트
