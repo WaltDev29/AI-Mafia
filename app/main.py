@@ -216,8 +216,43 @@ async def _message_loop(player: Player, game) -> None:
                 exclude_player_id=player.id,
             )
 
+        elif msg_type == WsMessageType.SUBMIT_VOTE:
+            await _handle_submit_vote(player, game, data)
+
         else:
             logger.warning(f"[main] 알 수 없는 메시지 타입: {msg_type}")
+
+
+async def _handle_submit_vote(player: Player, game, data: dict) -> None:
+    """투표 제출 처리"""
+    from .models import GamePhase
+
+    if game.phase != GamePhase.VOTING:
+        await connection_manager.send_error(player.id, "투표 단계가 아닙니다.")
+        return
+
+    if player.is_eliminated:
+        await connection_manager.send_error(player.id, "탈락한 플레이어는 투표할 수 없습니다.")
+        return
+
+    voted_id = str(data.get("data", {}).get("voted_player_id", "")).strip()
+    if not voted_id:
+        await connection_manager.send_error(player.id, "투표 대상이 지정되지 않았습니다.")
+        return
+
+    # 올바른 대상인지 검증
+    target = next((p for p in game.alive_players if p.id == voted_id), None)
+    if target is None:
+        await connection_manager.send_error(player.id, "유효하지 않은 투표 대상입니다.")
+        return
+
+    # 본인 투표 금지
+    if voted_id == player.id:
+        await connection_manager.send_error(player.id, "자기 자신에게는 투표할 수 없습니다.")
+        return
+
+    game.votes[player.id] = voted_id
+    logger.info(f"[main] 투표 제출: {player.id} -> {voted_id}")
 
 
 async def _handle_experience_submit(player: Player, game, data: dict) -> None:
@@ -281,8 +316,13 @@ async def _handle_chat(player: Player, game, data: dict) -> None:
     if len(content) > 200:
         content = content[:200]
 
+    # 게임 내 플레이어 정보에서 닉네임 가져오기
+    player_in_game = next((p for p in game.players if p.id == player.id), None)
+    nickname = player_in_game.nickname if player_in_game else ""
+
     msg = ChatMessage(
         player_id=player.id,
+        nickname=nickname,
         content=content,
         timestamp=time.time(),
     )

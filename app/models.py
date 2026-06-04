@@ -20,7 +20,8 @@ class GamePhase(str, Enum):
     ROUND_START = "round_start"              # 라운드 시작 / 제시어 공개
     EXPERIENCE_SHARING = "experience_sharing"# 경험 공유 단계
     FREE_CHAT = "free_chat"                  # 자유 대화 단계
-    JUDGING = "judging"                      # LLM 판정 단계
+    JUDGING = "judging"                      # LLM 판정 단계 (솔로 모드)
+    VOTING = "voting"                        # 투표 단계 (그룹 모드)
     GAME_OVER = "game_over"                  # 게임 종료
 
 
@@ -29,6 +30,7 @@ class Player(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    nickname: str = ""
     is_human: bool
     is_eliminated: bool = False
     # WebSocket 객체는 직렬화하지 않음 (게임 로직에서만 참조)
@@ -38,6 +40,7 @@ class Player(BaseModel):
 class ChatMessage(BaseModel):
     """채팅 메시지"""
     player_id: str
+    nickname: str = ""
     content: str
     timestamp: float  # Unix timestamp
 
@@ -73,6 +76,8 @@ class WsMessageType(str, Enum):
     CHAT_MESSAGE = "chat_message"           # 채팅 메시지 브로드캐스트
     JUDGING_START = "judging_start"         # 판정 시작 알림
     JUDGE_RESULT = "judge_result"           # 판정 결과
+    VOTING_START = "voting_start"           # 투표 시작 알림
+    VOTE_RESULT = "vote_result"             # 투표 결과
     PLAYER_ELIMINATED = "player_eliminated" # 플레이어 탈락
     GAME_OVER = "game_over"                 # 게임 종료
     WAITING_ROOM = "waiting_room"           # 대기방 상태 업데이트
@@ -83,6 +88,7 @@ class WsMessageType(str, Enum):
     SUBMIT_EXPERIENCE = "submit_experience" # 경험담 제출
     SEND_CHAT = "send_chat"                 # 채팅 전송
     TYPING_STATUS = "typing_status"         # 타이핑 상태 브로드캐스트/수신
+    SUBMIT_VOTE = "submit_vote"             # 투표 제출
 
 
 class WsMessage(BaseModel):

@@ -118,6 +118,62 @@ class AIPlayer:
             logger.error(f"[AIPlayer] 반응형 채팅 생성 실패 (player={self.player.id}): {e}")
             return "ㅋㅋ 맞아요"
 
+    async def generate_vote(self, alive_players: list[Player], chat_history: list[ChatMessage], experience_submissions: dict[str, str]) -> str:
+        """
+        AI가 대화 내역을 보고 누구를 탈락시킬지 투표한다.
+        그룹 모드에서 AI는 인간인 척하며 다른 인간을 지목해야 한다.
+        """
+        # 본인은 제외한 생존자 목록
+        candidates = [p for p in alive_players if p.id != self.player.id]
+        if not candidates:
+            return ""
+
+        experience_text = "\n".join(
+            f"- {p.nickname} (id: {p.id}): {experience_submissions.get(p.id, '(미제출)')}"
+            for p in candidates
+        )
+
+        recent_chat = chat_history[-30:] if len(chat_history) > 30 else chat_history
+        chat_text = "\n".join(
+            f"{msg.nickname}: {msg.content}" for msg in recent_chat
+        )
+        
+        candidates_info = ", ".join(f"'{p.nickname}'(id: {p.id})" for p in candidates)
+
+        try:
+            response = await _client.chat.completions.create(
+                model=_MODEL,
+                messages=[
+                    {"role": "system", "content": self._system_prompt},
+                    {
+                        "role": "user",
+                        "content": (
+                            f"[투표 대상 후보들]\n{candidates_info}\n\n"
+                            f"[후보들의 경험담]\n{experience_text}\n\n"
+                            f"[자유 대화 내용]\n{chat_text}\n\n"
+                            "너는 다른 후보들 중 한 명을 'AI'로 몰아서 탈락시켜야 해. "
+                            "위 내용을 바탕으로 가장 수상하거나 마음에 안 드는 후보 1명을 골라. "
+                            "반드시 JSON 형식으로 응답하고, id는 후보 목록에 있는 정확한 id(UUID)여야 해:\n"
+                            "{\n"
+                            '  "voted_player_id": "<후보의 고유 id>"\n'
+                            "}"
+                        ),
+                    },
+                ],
+                max_tokens=100,
+                temperature=0.7,
+                response_format={"type": "json_object"},
+            )
+            raw = response.choices[0].message.content.strip()
+            data = json.loads(raw)
+            voted_id = data.get("voted_player_id")
+            if any(c.id == voted_id for c in candidates):
+                return voted_id
+            return random.choice(candidates).id
+        except Exception as e:
+            logger.error(f"[AIPlayer] 투표 생성 실패 (player={self.player.id}): {e}")
+            return random.choice(candidates).id
+
     @property
     def chat_interval(self) -> float:
         """랜덤한 채팅 딜레이(초)를 반환한다."""
@@ -205,7 +261,6 @@ class LLMJudge:
 
             return JudgeResult(
                 eliminated_player_id=eliminated_id,
-                eliminated_nickname=data["eliminated_nickname"],
                 human_probability=int(data["human_probability"]),
                 reason=data["reason"],
             )

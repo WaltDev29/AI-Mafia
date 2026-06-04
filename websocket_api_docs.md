@@ -47,9 +47,15 @@ sequenceDiagram
         end
         S-->>C: free_chat_end (타이머 종료)
         
-        %% 판정 단계
-        S-->>C: judging_start (LLM 분석 시작)
-        S-->>C: judge_result (탈락자 결과 및 이유)
+        %% 판정 단계 또는 투표 단계
+        alt mode == solo
+            S-->>C: judging_start (LLM 분석 시작)
+            S-->>C: judge_result (탈락자 결과 및 이유)
+        else mode == group
+            S-->>C: voting_start (투표 제한시간)
+            C->>S: submit_vote (탈락 대상 지정)
+            S-->>C: vote_result (투표 결과 및 탈락자)
+        end
         
         %% 게임 종료 체크
         opt 승리 조건 충족 시
@@ -68,6 +74,7 @@ sequenceDiagram
 | `submit_experience` | `{ "content": "내용" }` | 내 차례일 때 경험담 제출 (최대 2줄) |
 | `send_chat` | `{ "content": "내용" }` | 자유 대화 시간에 채팅 전송 (최대 200자) |
 | `typing_status` | `{ "is_typing": true/false }` | 내가 타이핑 중인지 여부 상태 업데이트 |
+| `submit_vote` | `{ "voted_player_id": "대상 ID" }` | (그룹 모드) 투표 단계에서 탈락시킬 대상 제출 |
 
 ---
 
@@ -96,8 +103,10 @@ sequenceDiagram
 | `chat_message` | `{ "player_id": "...", "content": "내용", "timestamp": 161... }` | 누군가 채팅을 보냄 (브로드캐스트) |
 | `typing_status` | `{ "player_id": "...", "is_typing": true }` | 누군가 타이핑을 치고 있음 |
 
-### 4.3. 판정 이벤트
+### 4.3. 판정 및 투표 이벤트
 | 이벤트(type) | 데이터(data) 페이로드 예시 | 설명 |
 |---|---|---|
-| `judging_start` | `{}` (빈 객체) | LLM이 대화를 분석하기 시작함 |
-| `judge_result` | `{ "eliminated_player_id": "...", "human_probability": 85, "reason": "...", "was_human": true\|false }` | LLM 판정 결과 및 해당 라운드 탈락자 공개 |
+| `judging_start` | `{}` (빈 객체) | (솔로 모드) LLM이 대화를 분석하기 시작함 |
+| `judge_result` | `{ "eliminated_player_id": "...", "human_probability": 85, "reason": "...", "was_human": true\|false }` | (솔로 모드) LLM 판정 결과 및 해당 라운드 탈락자 공개 |
+| `voting_start` | `{ "timeout": 30 }` | (그룹 모드) 플레이어 투표 시작 (제한 시간 알림) |
+| `vote_result` | `{ "eliminated_player_id": "...", "vote_counts": {"id1": 3, "id2": 1}, "was_human": true\|false }` | (그룹 모드) 투표 집계 결과 및 해당 라운드 탈락자 공개 |

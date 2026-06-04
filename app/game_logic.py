@@ -48,6 +48,7 @@ def _build_player_list_payload(game: GameState) -> dict:
         "players": [
             {
                 "id": p.id,
+                "nickname": p.nickname,
                 "is_human": p.is_human,  # 프론트에서 자기 자신 확인용
                 "is_eliminated": p.is_eliminated,
             }
@@ -62,6 +63,10 @@ async def start_game(game: GameState) -> None:
     각 라운드를 순차적으로 진행하고, 종료 조건에 도달하면 게임을 종료한다.
     """
     try:
+        # 닉네임 자동 부여 (Player 1, Player 2 ...)
+        for idx, p in enumerate(game.players):
+            p.nickname = f"Player {idx + 1}"
+
         # AI 플레이어 에이전트 초기화 (게임당 독립 인스턴스)
         ai_agents: dict[str, AIPlayer] = {
             p.id: AIPlayer(p) for p in game.players if not p.is_human
@@ -130,9 +135,14 @@ async def start_game(game: GameState) -> None:
             game.phase = GamePhase.FREE_CHAT
             await _run_free_chat(game, ai_agents)
 
-            # ── JUDGING ────────────────────────────────────────────────────
-            game.phase = GamePhase.JUDGING
-            await _run_judging(game, judge)
+            # ── JUDGING or VOTING ───────────────────────────────────────────
+            if game.mode == GameMode.SOLO:
+                game.phase = GamePhase.JUDGING
+                await _run_judging(game, judge)
+            else:
+                game.phase = GamePhase.VOTING
+                game.votes.clear()
+                await _run_voting(game, ai_agents)
 
     except Exception as e:
         logger.error(f"[game_logic] 게임 강제 종료 (game_id={game.game_id}): {e}", exc_info=True)
@@ -294,8 +304,7 @@ async def _ai_chat_loop(
     experience_lines = []
     for p in game.alive_players:
         exp = game.experience_submissions.get(p.id, "(미제출)")
-        p_name = f"Player {game.players.index(p) + 1}"
-        experience_lines.append(f"- {p_name}: {exp}")
+        experience_lines.append(f"- {p.nickname}: {exp}")
     experience_text = "\n".join(experience_lines)
 
     while True:
@@ -336,6 +345,7 @@ async def _broadcast_ai_chat(
     """AI 채팅 메시지를 게임 채팅 히스토리에 기록하고 브로드캐스트한다."""
     msg = ChatMessage(
         player_id=player.id,
+        nickname=player.nickname,
         content=content,
         timestamp=time.time(),
     )
@@ -404,6 +414,112 @@ async def _run_judging(game: GameState, judge: LLMJudge) -> None:
     )
 
 
+async def _run_voting(game: GameState, ai_agents: dict[str, AIPlayer]) -> None:
+    """
+    그룹 모드(인간 4 vs AI 1)에서 진행되는 플레이어 투표 단계.
+    인간 플레이어는 클라이언트로부터 submit_vote를 받고,
+    AI 플레이어는 LLM을 통해 투표 대상을 결정한다.
+    """
+    timeout = 30  # 투표 제한 시간(초)
+    await connection_manager.broadcast_to_game(
+        game,
+        WsMessage(
+            type=WsMessageType.VOTING_START,
+            data={"timeout": timeout},
+        ),
+    )
+
+    # AI 플레이어 투표 (비동기로 실행)
+    ai_tasks = []
+    for p in game.alive_ais:
+        if p.id in ai_agents:
+            # AIPlayer.generate_vote 호출
+            ai_tasks.append(
+                asyncio.create_task(
+                    _ai_vote_task(game, ai_agents[p.id])
+                )
+            )
+
+    # 인간 플레이어의 투표 대기 (timeout 또는 모두 투표 완료 시까지)
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if not game.alive_humans:
+            break
+        # 생존한 모든 플레이어가 투표를 완료했는지 확인
+        all_voted = all(p.id in game.votes for p in game.alive_players)
+        if all_voted:
+            break
+        await asyncio.sleep(0.5)
+
+    # 투표 시간 종료 시, 투표하지 않은 플레이어는 랜덤으로 투표 처리
+    alive_ids = [p.id for p in game.alive_players]
+    for p in game.alive_players:
+        if p.id not in game.votes:
+            # 본인 제외 랜덤 투표
+            others = [oid for oid in alive_ids if oid != p.id]
+            if others:
+                game.votes[p.id] = random.choice(others)
+
+    # AI 투표 태스크가 아직 안 끝났다면 대기
+    if ai_tasks:
+        await asyncio.gather(*ai_tasks, return_exceptions=True)
+
+    # 투표 집계
+    vote_counts = {p.id: 0 for p in game.alive_players}
+    for voter_id, voted_id in game.votes.items():
+        if voted_id in vote_counts:
+            vote_counts[voted_id] += 1
+
+    # 가장 표를 많이 받은 사람 찾기
+    max_votes = max(vote_counts.values()) if vote_counts else 0
+    tied_players = [pid for pid, count in vote_counts.items() if count == max_votes]
+
+    if not tied_players:
+        # 뭔가 잘못된 경우 랜덤
+        eliminated_id = random.choice(alive_ids)
+    elif len(tied_players) == 1:
+        eliminated_id = tied_players[0]
+    else:
+        # 동점일 경우 랜덤으로 한 명 탈락
+        eliminated_id = random.choice(tied_players)
+
+    # 탈락 처리
+    eliminated = next(
+        (p for p in game.alive_players if p.id == eliminated_id),
+        None,
+    )
+    if eliminated:
+        eliminated.is_eliminated = True
+        logger.info(
+            f"[game_logic] 투표 탈락: {eliminated.id} "
+            f"(is_human={eliminated.is_human}, votes={max_votes})"
+        )
+
+    # 투표 결과 브로드캐스트
+    await connection_manager.broadcast_to_game(
+        game,
+        WsMessage(
+            type=WsMessageType.VOTE_RESULT,
+            data={
+                "eliminated_player_id": eliminated_id,
+                "vote_counts": vote_counts,
+                "was_human": eliminated.is_human if eliminated else None,
+            },
+        ),
+    )
+
+
+async def _ai_vote_task(game: GameState, ai: AIPlayer) -> None:
+    """AI가 투표 대상을 정하고 GameState에 기록하는 헬퍼 함수"""
+    voted_id = await ai.generate_vote(
+        alive_players=game.alive_players,
+        chat_history=game.chat_history,
+        experience_submissions=game.experience_submissions
+    )
+    if voted_id:
+        game.votes[ai.player.id] = voted_id
+
+
 def _check_game_result(game: GameState) -> Optional[GameResult]:
     """
     현재 게임 상태를 보고 종료 조건을 판단한다.
@@ -446,6 +562,7 @@ async def _handle_game_over(game: GameState, result: GameResult) -> None:
                 "players": [
                     {
                         "id": p.id,
+                        "nickname": p.nickname,
                         "is_human": p.is_human,
                         "is_eliminated": p.is_eliminated,
                     }

@@ -31,6 +31,8 @@ class GameState:
     experience_index: int = 0
     # 채팅 히스토리 (자유 대화 포함)
     chat_history: list[ChatMessage] = field(default_factory=list)
+    # 투표 결과 (voter_id -> voted_player_id)
+    votes: dict = field(default_factory=dict)
 
     @property
     def alive_players(self) -> list[Player]:
