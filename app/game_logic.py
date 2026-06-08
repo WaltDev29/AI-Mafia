@@ -383,8 +383,8 @@ async def _run_judging(game: GameState, judge: LLMJudge) -> None:
         from .models import JudgeResult
         result = JudgeResult(
             eliminated_player_id=fallback_player.id,
-            human_probability=50,
-            reason="판정 시스템 오류로 인해 랜덤 탈락이 적용되었습니다.",
+            ai_probability=50,
+            reason="판정관의 응답을 받을 수 없어 임의로 탈락자를 선정했습니다.",
         )
 
     # 탈락 처리
@@ -395,8 +395,8 @@ async def _run_judging(game: GameState, judge: LLMJudge) -> None:
     if eliminated:
         eliminated.is_eliminated = True
         logger.info(
-            f"[game_logic] 탈락: {eliminated.id} "
-            f"(is_human={eliminated.is_human}, prob={result.human_probability}%)"
+            f"[GameLogic] 판정 결과: {eliminated.nickname} 탈락 "
+            f"(is_human={eliminated.is_human}, prob={result.ai_probability}%)"
         )
 
     # 판정 결과 브로드캐스트
@@ -406,7 +406,7 @@ async def _run_judging(game: GameState, judge: LLMJudge) -> None:
             type=WsMessageType.JUDGE_RESULT,
             data={
                 "eliminated_player_id": result.eliminated_player_id,
-                "human_probability": result.human_probability,
+                "ai_probability": result.ai_probability,
                 "reason": result.reason,
                 "was_human": eliminated.is_human if eliminated else None,
             },

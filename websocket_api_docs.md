@@ -106,7 +106,7 @@ sequenceDiagram
 ### 4.3. 판정 및 투표 이벤트
 | 이벤트(type) | 데이터(data) 페이로드 예시 | 설명 |
 |---|---|---|
-| `judging_start` | `{}` (빈 객체) | (솔로 모드) LLM이 대화를 분석하기 시작함 |
-| `judge_result` | `{ "eliminated_player_id": "...", "human_probability": 85, "reason": "...", "was_human": true\|false }` | (솔로 모드) LLM 판정 결과 및 해당 라운드 탈락자 공개 |
-| `voting_start` | `{ "timeout": 30 }` | (그룹 모드) 플레이어 투표 시작 (제한 시간 알림) |
+| `judging_start` | `null` | (솔로 모드) LLM 판정 시작 알림 |
+| `judge_result` | `{ "eliminated_player_id": "...", "ai_probability": 85, "reason": "...", "was_human": true\|false }` | (솔로 모드) LLM 판정 결과 및 해당 라운드 탈락자 공개 |
+| `voting_start` | `{ "timeout": 30 }` | (그룹 모드) 참가자 투표 시작 알림 |
 | `vote_result` | `{ "eliminated_player_id": "...", "vote_counts": {"id1": 3, "id2": 1}, "was_human": true\|false }` | (그룹 모드) 투표 집계 결과 및 해당 라운드 탈락자 공개 |

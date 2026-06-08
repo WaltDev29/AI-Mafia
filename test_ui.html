@@ -1614,7 +1614,7 @@
 
     function appendJudgeResult(data) {
       const msgs = document.getElementById('messages');
-      const prob = data.human_probability;
+      const prob = data.ai_probability;
       const wasHumanText = data.was_human === true ? ' <span style="color:var(--danger)">(실제 인간)</span>'
         : data.was_human === false ? ' <span style="color:var(--ai-color)">(실제 AI)</span>' : '';
 

@@ -48,7 +48,7 @@ class ChatMessage(BaseModel):
 class JudgeResult(BaseModel):
     """LLM 판정 결과"""
     eliminated_player_id: str
-    human_probability: int  # 사람이라고 판단한 확률 (0~100)
+    ai_probability: int  # AI라고 판단한 확률 (0~100)
     reason: str
 
 

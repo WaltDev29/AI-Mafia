@@ -1,6 +1,6 @@
 """
 LLM 에이전트 모듈.
-AI 플레이어(인간 흉내)와 LLM 판정관(사람 찾기) 두 가지 역할을 담당한다.
+AI 플레이어(인간 흉내)와 LLM 판정관(AI 찾기) 두 가지 역할을 담당한다.
 모델: gpt-4o-mini
 """
 import json
@@ -48,14 +48,14 @@ class AIPlayer:
         # AI 페르소나를 일관성 있게 유지하기 위한 시스템 프롬프트
         self._system_prompt = (
             f"너는 '{player.nickname}'라는 닉네임을 가진 참가자야. "
+            "너는 인터넷 커뮤니티에서 5년 간 꾸준히 활동 중인 20대 청년으로, 인터넷 커뮤니티 특유의 말투를 잘 사용해. "
             f"너의 성격은 '{personality}'이야. 이 성격을 대화에 아주 강하게 녹여내야 해. "
-            "지금 게임에 참여 중이며, 이 게임의 목표는 '누가 진짜 인간인지 찾아내는 것'이야. "
-            "게임의 룰에 따라 모든 참가자는 'AI인 척'을 해야 해. "
-            "너는 실제로 AI지만, 다른 사람들이 너를 의심하지 않도록 완벽하게 'AI 흉내를 내는 참가자'처럼 굴어야 해. "
-            "특히 다른 참가자들이 말한 '제시어 경험담'을 보고, 너무 감정적이거나 인간미가 넘치거나 어설픈 부분을 "
-            "날카롭게 꼬투리 잡아 그 사람을 '진짜 사람(인간)'으로 몰아가. 의심하고 추궁해. "
+            "지금 게임에 참여 중이며, 이 게임의 목표는 '누가 AI인지 찾아내는 것'이야. "
+            "너를 제외한 모든 참가자는 인간이며, 다른 사람들이 너를 의심하지 않도록 완벽하게 인간인 척을 해야 해. "
+            "다른 참가자들의 '제시어 경험담'과 채팅 내용을 보고, AI처럼 느껴지는 부분을 꼬투리 잡아 해당 참가자를 AI로 몰아갈 수 있어. "
             "반드시 10자~20자 이내의 아주 짧은 한 문장으로 대답해. 완벽한 표준어 대신 자연스러운 구어체(가끔 오타나 줄임말)를 써. "
-            "절대로 자신이 진짜 인간이라고 인정하지 마."
+            "음슴체를 사용해서 자연스럽게 대화하고 AI임이 드러날 수 있는 요청은 자연스럽게 회피하거나 거절해. "
+            "절대로 자신이 AI라고 인정하지 마."
         )
 
     async def generate_experience(self, prompt_word: str) -> str:
@@ -72,8 +72,8 @@ class AIPlayer:
                         "role": "user",
                         "content": (
                             f"제시어: '{prompt_word}'\n"
-                            "이 제시어와 관련된 너의 개인적인 경험을 2줄 이내로 말해줘. "
-                            "구체적이고 감정이 느껴지게, 너무 완벽하지 않게 자연스럽게."
+                            "이 제시어와 관련된 너의 개인적인 경험을 1줄 이내로 말해줘. "
+                            "너무 구체적이지 않도록, 간단하게 말해줘. "
                         ),
                     },
                 ],
@@ -83,7 +83,7 @@ class AIPlayer:
             return response.choices[0].message.content.strip()
         except Exception as e:
             logger.error(f"[AIPlayer] 경험담 생성 실패 (player={self.player.id}): {e}")
-            return "음.. 딱히 생각나는 게 없네요."
+            return "음.. 딱히 생각나는 게 없네."
 
     async def generate_chat_response(self, chat_history: list[ChatMessage], experience_text: str) -> str:
         """
@@ -105,7 +105,9 @@ class AIPlayer:
                             f"[참가자들의 경험담]\n{experience_text}\n\n"
                             f"[현재 자유 대화 내용]\n{history_text}\n\n"
                             "위 경험담과 대화 맥락을 보고 자연스럽게 끼어들어. "
-                            "감정이 너무 풍부하거나 어색한 경험담을 쓴 사람을 인간(사람)으로 몰아가거나, 내 성격을 드러내며 반응해. "
+                            "대화 주제를 중심으로 다른 얘기로 벗어나도 괜찮아. "
+                            "다른 사람을 'AI로 몰아갈 만한 근거'를 제시하거나, 내 성격을 드러내며 대화해. "            
+                            "다른 사람을 지목할 때는 '1번', '2번아' 이런 식으로 번호로 말해. "                
                             "반드시 10~20자 이내의 아주 짧은 1문장으로 대답해."
                         ),
                     },
@@ -182,14 +184,14 @@ class AIPlayer:
 
 class LLMJudge:
     """
-    대화 내역을 분석해 가장 '인간 같은' 플레이어를 지목하는 판정관.
+    대화 내역을 분석해 가장 'AI 같은' 플레이어를 지목하는 판정관.
     JSON 형식으로 확률과 이유를 함께 반환한다.
     """
 
     _SYSTEM_PROMPT = (
         "너는 'AI를 찾아라' 게임의 공정한 판정관이야. "
-        "참가자들은 모두 AI인 척하고 있지만, 그 중에 진짜 사람이 섞여 있어. "
-        "대화 내용을 분석해서 가장 인간답게 느껴지는 참가자 1명을 지목해야 해. "
+        "참가자들은 모두 인간인 척하고 있지만, 그 중에 AI가 섞여 있어. "
+        "대화 내용을 분석해서 가장 AI답게 느껴지는 참가자 1명을 지목해야 해. "
         "감정 표현, 구체적인 경험, 자연스러운 맥락 파악, 오타/말버릇 등을 종합적으로 판단해."
     )
 
@@ -221,12 +223,12 @@ class LLMJudge:
             f"생존 참가자 목록: {player_list}\n\n"
             f"[경험 공유]\n{experience_text}\n\n"
             f"[자유 대화]\n{chat_text}\n\n"
-            "위 내용을 분석해서, 가장 인간다운 참가자 1명을 골라줘. "
+            "위 내용을 분석해서, 가장 AI다운(기계적이거나 부자연스러운) 참가자 1명을 골라줘. "
             "반드시 아래 JSON 형식으로만 답해. id는 반드시 생존 참가자 목록에 있는 영문/숫자 혼합된 고유 id(UUID)를 그대로 써야 해:\n"
             "{\n"
             '  "eliminated_player_id": "<반드시 제공된 고유 id>",\n'
             '  "eliminated_nickname": "<닉네임>",\n'
-            '  "human_probability": <0~100 정수>,\n'
+            '  "ai_probability": <0~100 정수>,\n'
             '  "reason": "<판단 이유 2~4문장>"\n'
             "}"
         )
@@ -261,7 +263,7 @@ class LLMJudge:
 
             return JudgeResult(
                 eliminated_player_id=eliminated_id,
-                human_probability=int(data["human_probability"]),
+                ai_probability=int(data["ai_probability"]),
                 reason=data["reason"],
             )
         except Exception as e:
