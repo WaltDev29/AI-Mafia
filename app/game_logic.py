@@ -13,7 +13,7 @@ from typing import Optional
 
 from .config import settings
 from .connection_manager import connection_manager
-from .llm_agents import AIPlayer, LLMJudge
+from .llm_agents import AIPlayer
 from .models import (
     ChatMessage,
     GameMode,
@@ -71,7 +71,6 @@ async def start_game(game: GameState) -> None:
         ai_agents: dict[str, AIPlayer] = {
             p.id: AIPlayer(p) for p in game.players if not p.is_human
         }
-        judge = LLMJudge()
 
         # 게임 시작 알림
         await connection_manager.broadcast_to_game(
@@ -135,14 +134,10 @@ async def start_game(game: GameState) -> None:
             game.phase = GamePhase.FREE_CHAT
             await _run_free_chat(game, ai_agents)
 
-            # ── JUDGING or VOTING ───────────────────────────────────────────
-            if game.mode == GameMode.SOLO:
-                game.phase = GamePhase.JUDGING
-                await _run_judging(game, judge)
-            else:
-                game.phase = GamePhase.VOTING
-                game.votes.clear()
-                await _run_voting(game, ai_agents)
+            # ── VOTING (솔로/단체 공통) ───────────────────────────────────────────
+            game.phase = GamePhase.VOTING
+            game.votes.clear()
+            await _run_voting(game, ai_agents)
 
     except Exception as e:
         logger.error(f"[game_logic] 게임 강제 종료 (game_id={game.game_id}): {e}", exc_info=True)
@@ -358,57 +353,6 @@ async def _broadcast_ai_chat(
                 "player_id": player.id,
                 "content": content,
                 "timestamp": msg.timestamp,
-            },
-        ),
-    )
-
-
-async def _run_judging(game: GameState, judge: LLMJudge) -> None:
-    """LLM 판정관을 호출하고 탈락자를 처리한다."""
-    await connection_manager.broadcast_to_game(
-        game,
-        WsMessage(type=WsMessageType.JUDGING_START, data={}),
-    )
-
-    result = await judge.judge(
-        alive_players=game.alive_players,
-        chat_history=game.chat_history,
-        experience_submissions=game.experience_submissions,
-    )
-
-    # LLM 판정 실패 시 랜덤 탈락 (서비스 연속성 보장)
-    if result is None:
-        logger.warning(f"[game_logic] 판정 실패 → 랜덤 탈락 처리 (game={game.game_id})")
-        fallback_player = random.choice(game.alive_players)
-        from .models import JudgeResult
-        result = JudgeResult(
-            eliminated_player_id=fallback_player.id,
-            ai_probability=50,
-            reason="판정관의 응답을 받을 수 없어 임의로 탈락자를 선정했습니다.",
-        )
-
-    # 탈락 처리
-    eliminated = next(
-        (p for p in game.alive_players if p.id == result.eliminated_player_id),
-        None,
-    )
-    if eliminated:
-        eliminated.is_eliminated = True
-        logger.info(
-            f"[GameLogic] 판정 결과: {eliminated.nickname} 탈락 "
-            f"(is_human={eliminated.is_human}, prob={result.ai_probability}%)"
-        )
-
-    # 판정 결과 브로드캐스트
-    await connection_manager.broadcast_to_game(
-        game,
-        WsMessage(
-            type=WsMessageType.JUDGE_RESULT,
-            data={
-                "eliminated_player_id": result.eliminated_player_id,
-                "ai_probability": result.ai_probability,
-                "reason": result.reason,
-                "was_human": eliminated.is_human if eliminated else None,
             },
         ),
     )
