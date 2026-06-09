@@ -43,10 +43,12 @@ class ConnectionManager:
         except Exception as e:
             logger.warning(f"[ConnectionManager] 전송 실패 (player={player_id}): {e}")
 
-    async def broadcast(self, player_ids: list[str], message: WsMessage) -> None:
+    async def broadcast(self, player_ids: list[str], message: WsMessage, exclude_player_id: Optional[str] = None) -> None:
         """지정된 플레이어 목록에게 동일한 메시지를 브로드캐스트한다."""
         payload = message.model_dump_json()
         for pid in player_ids:
+            if pid == exclude_player_id:
+                continue
             ws = self._connections.get(pid)
             if ws is None:
                 continue
@@ -55,13 +57,13 @@ class ConnectionManager:
             except Exception as e:
                 logger.warning(f"[ConnectionManager] 브로드캐스트 실패 (player={pid}): {e}")
 
-    async def broadcast_to_game(self, game, message: WsMessage) -> None:
+    async def broadcast_to_game(self, game, message: WsMessage, exclude_player_id: Optional[str] = None) -> None:
         """
         게임에 속한 모든 인간 플레이어에게 메시지를 전송한다.
         (AI 플레이어는 WebSocket 연결이 없으므로 제외)
         """
         human_ids = [p.id for p in game.players if p.is_human]
-        await self.broadcast(human_ids, message)
+        await self.broadcast(human_ids, message, exclude_player_id)
 
     async def send_error(self, player_id: str, detail: str) -> None:
         await self.send(

@@ -31,6 +31,8 @@ class GameState:
     experience_index: int = 0
     # 채팅 히스토리 (자유 대화 포함)
     chat_history: list[ChatMessage] = field(default_factory=list)
+    # 투표 결과 (voter_id -> voted_player_id)
+    votes: dict = field(default_factory=dict)
 
     @property
     def alive_players(self) -> list[Player]:
@@ -76,7 +78,7 @@ class GameManager:
         self.active_games[game_id] = game
         logger.info(
             f"[GameManager] 게임 생성: id={game_id}, mode={mode}, "
-            f"players={[p.nickname for p in players]}"
+            f"players={len(players)}명"
         )
         return game
 
@@ -105,7 +107,7 @@ class GameManager:
         from .config import settings
         self.group_waiting_room.append(player)
         logger.info(
-            f"[GameManager] 단체 대기방: {player.nickname} 추가 "
+            f"[GameManager] 단체 대기방: {player.id} 추가 "
             f"({len(self.group_waiting_room)}/{settings.GROUP_MIN_PLAYERS}명)"
         )
         if len(self.group_waiting_room) >= settings.GROUP_MIN_PLAYERS:
